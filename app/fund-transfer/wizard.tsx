@@ -8,6 +8,7 @@ import KioskPage from '../../src/components/KioskPage';
 import WizardStepper from '../../src/components/WizardStepper';
 import ActionButtons from '../../src/components/ActionButtons';
 import { useThemeContext } from '../../src/context/ThemeContext';
+import { useToast } from '../../src/context/ToastContext';
 
 const MOCK_ACCOUNTS = [
     { id: '1', number: 'xxxx1234', type: 'Savings', balance: 50000 },
@@ -31,6 +32,7 @@ export default function FundTransferWizard() {
     const router = useRouter();
     const theme = useTheme();
     const { mode } = useThemeContext();
+    const { showSuccess } = useToast();
     const isDark = mode === 'dark';
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -93,7 +95,9 @@ export default function FundTransferWizard() {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            setMockRefNo(`FT${Date.now()}88`);
+            const refNo = `FT${Date.now()}88`;
+            setMockRefNo(refNo);
+            showSuccess(`Transfer completed! Ref: ${refNo}`);
             setStep(4);
         }, 2000);
     };

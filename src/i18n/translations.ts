@@ -26,6 +26,7 @@ export const translations = {
             subtitle_with_user: 'Enter the OTP sent to your registered mobile for User ID:',
             resend_in: 'Resend OTP in',
             resend: 'Resend OTP',
+            resent: 'OTP has been resent',
             verify: 'Verify',
             verified: 'Verified Successfully',
             identity_verified: 'Identity Verified',

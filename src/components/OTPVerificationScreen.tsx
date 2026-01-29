@@ -3,6 +3,7 @@ import { Typography, Button, Box } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { useKeyboard } from '../context/KeyboardContext';
+import { useToast } from '../context/ToastContext';
 import KioskPage from './KioskPage';
 import OTPFieldGroup from './OTPFieldGroup';
 import SuccessState from './SuccessState';
@@ -61,6 +62,7 @@ export default function OTPVerificationScreen({
     demoHint
 }: OTPVerificationScreenProps) {
     const { t } = useLanguage();
+    const { showSuccess, showInfo } = useToast();
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(initialTimer);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -80,6 +82,7 @@ export default function OTPVerificationScreen({
         if (finalOtp.length === 6) {
             hideKeyboard();
             setIsSuccess(true);
+            showSuccess(t('otp.verified') || 'OTP Verified!');
             // Call the onVerify callback after showing success animation briefly
             setTimeout(() => {
                 onVerify(finalOtp);
@@ -90,6 +93,7 @@ export default function OTPVerificationScreen({
     const handleResend = () => {
         setTimer(initialTimer);
         setOtp(['', '', '', '', '', '']);
+        showInfo(t('otp.resent') || 'OTP has been resent');
         if (onResend) {
             onResend();
         }

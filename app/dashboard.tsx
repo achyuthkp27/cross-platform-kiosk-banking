@@ -53,6 +53,14 @@ export default function Dashboard() {
         { id: 4, title: t('dashboard.bill_payment'), path: '/bill-payment', color: '#F59E0B' }
     ];
 
+    // Mock account data
+    const accounts = [
+        { id: 1, type: 'Savings', number: 'xxxx1234', balance: 50000, color: '#3B82F6' },
+        { id: 2, type: 'Current', number: 'xxxx5678', balance: 125000, color: '#10B981' },
+    ];
+
+    const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
     const handleLogout = () => {
         router.replace('/');
     };
@@ -147,13 +155,85 @@ export default function Dashboard() {
             </AppBar>
 
             {/* Main Content */}
-            <Container maxWidth="lg" sx={{ mt: 6, mb: 4, flexGrow: 1, display: 'flex', alignItems: 'flex-start' }}>
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                     style={{ width: '100%' }}
                 >
+                    {/* Account Balance Summary */}
+                    <Box sx={{ mb: 5 }}>
+                        <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}>
+                            Account Summary
+                        </Typography>
+                        <Grid container spacing={3}>
+                            {/* Total Balance Card */}
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <motion.div variants={itemVariants}>
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            p: 3,
+                                            borderRadius: 4,
+                                            background: isDark
+                                                ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)'
+                                                : 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                                            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}`,
+                                            color: isDark ? 'white' : 'white',
+                                        }}
+                                    >
+                                        <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
+                                            Total Balance
+                                        </Typography>
+                                        <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: '"SF Mono", monospace' }}>
+                                            ₹{totalBalance.toLocaleString('en-IN')}
+                                        </Typography>
+                                    </Paper>
+                                </motion.div>
+                            </Grid>
+
+                            {/* Individual Account Cards */}
+                            {accounts.map((account) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={account.id}>
+                                    <motion.div variants={itemVariants}>
+                                        <Paper
+                                            elevation={0}
+                                            sx={{
+                                                p: 3,
+                                                borderRadius: 4,
+                                                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                                                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)'}`,
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                                <Box
+                                                    sx={{
+                                                        width: 10,
+                                                        height: 10,
+                                                        borderRadius: '50%',
+                                                        bgcolor: account.color,
+                                                        mr: 1,
+                                                    }}
+                                                />
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {account.type} • {account.number}
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>
+                                                ₹{account.balance.toLocaleString('en-IN')}
+                                            </Typography>
+                                        </Paper>
+                                    </motion.div>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+
+                    {/* Quick Actions */}
+                    <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}>
+                        Quick Actions
+                    </Typography>
                     <Grid container spacing={4}>
                         {menuItems.map((item) => (
                             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>

@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, alpha, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
+import Confetti from './Confetti';
 
 interface SuccessStateProps {
     message: string;
     subMessage?: string;
     onHome?: () => void;
+    showConfetti?: boolean;
 }
 
 /**
  * Premium success state with animated checkmark and celebration effect.
  */
-export default function SuccessState({ message, subMessage, onHome }: SuccessStateProps) {
+export default function SuccessState({ message, subMessage, onHome, showConfetti = false }: SuccessStateProps) {
     const theme = useTheme();
+    const [triggerConfetti, setTriggerConfetti] = useState(false);
+
+    useEffect(() => {
+        if (showConfetti) {
+            // Delay confetti slightly for dramatic effect
+            const timer = setTimeout(() => setTriggerConfetti(true), 300);
+            return () => clearTimeout(timer);
+        }
+    }, [showConfetti]);
 
     // Particle positions for celebration effect
     const particles = [
@@ -33,6 +44,9 @@ export default function SuccessState({ message, subMessage, onHome }: SuccessSta
             py: 6,
             position: 'relative',
         }}>
+            {/* Confetti Celebration */}
+            <Confetti show={triggerConfetti} duration={4000} pieceCount={80} />
+
             {/* Success Circle with Checkmark */}
             <Box sx={{ position: 'relative', mb: 4 }}>
                 {/* Celebration Particles */}

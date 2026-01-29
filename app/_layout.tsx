@@ -5,6 +5,7 @@ import { KeyboardProvider } from '../src/context/KeyboardContext';
 import VirtualKeyboard from '../src/components/keyboard/VirtualKeyboard';
 import { LanguageProvider } from '../src/context/LanguageContext';
 import { SessionProvider } from '../src/context/SessionContext';
+import { ToastProvider } from '../src/context/ToastContext';
 import FloatingLanguageSwitcher from '../src/components/language/FloatingLanguageSwitcher';
 import ThemeToggle from '../src/components/theme/ThemeToggle';
 import ErrorBoundary from '../src/components/ErrorBoundary';
@@ -30,16 +31,18 @@ export default function RootLayout() {
         <ErrorBoundary>
             <ThemeProvider>
                 <LanguageProvider>
-                    <KeyboardProvider>
-                        <SessionProvider>
-                            <Stack screenOptions={{ headerShown: false }}>
-                                <Stack.Screen name="index" />
-                            </Stack>
-                            {pathname !== '/' && <ThemeToggle />}
-                            <VirtualKeyboard />
-                            <FloatingLanguageSwitcher />
-                        </SessionProvider>
-                    </KeyboardProvider>
+                    <ToastProvider>
+                        <KeyboardProvider>
+                            <SessionProvider>
+                                <Stack screenOptions={{ headerShown: false }}>
+                                    <Stack.Screen name="index" />
+                                </Stack>
+                                {pathname !== '/' && <ThemeToggle />}
+                                <VirtualKeyboard />
+                                <FloatingLanguageSwitcher />
+                            </SessionProvider>
+                        </KeyboardProvider>
+                    </ToastProvider>
                 </LanguageProvider>
             </ThemeProvider>
         </ErrorBoundary>

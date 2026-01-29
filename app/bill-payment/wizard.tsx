@@ -9,6 +9,7 @@ import KioskPage from '../../src/components/KioskPage';
 import WizardStepper from '../../src/components/WizardStepper';
 import ActionButtons from '../../src/components/ActionButtons';
 import { useThemeContext } from '../../src/context/ThemeContext';
+import { useToast } from '../../src/context/ToastContext';
 
 const CATEGORIES = [
     { id: 'electricity', name: 'Electricity', icon: <ElectricBolt fontSize="large" /> },
@@ -30,6 +31,7 @@ export default function BillPaymentWizard() {
     const router = useRouter();
     const theme = useTheme();
     const { mode } = useThemeContext();
+    const { showSuccess } = useToast();
     const isDark = mode === 'dark';
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -67,7 +69,9 @@ export default function BillPaymentWizard() {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            setMockTxnId(`BP${Date.now()}99`);
+            const txnId = `BP${Date.now()}99`;
+            setMockTxnId(txnId);
+            showSuccess(`Bill paid successfully! Txn: ${txnId}`);
             setStep(4);
         }, 2000);
     };
