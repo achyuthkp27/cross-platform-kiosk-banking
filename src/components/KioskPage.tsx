@@ -1,67 +1,98 @@
 import React from 'react';
-import { Box, Paper, Fade, Container } from '@mui/material';
+import { Container, Paper, Box, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useThemeContext } from '../context/ThemeContext';
 
 interface KioskPageProps {
     children: React.ReactNode;
-    maxWidth?: number | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-    animationDirection?: 'up' | 'down' | 'left' | 'right' | 'fade';
+    maxWidth?: number;
+    noPaper?: boolean;
 }
 
-export default function KioskPage({
-    children,
-    maxWidth = 600,
-    animationDirection = 'up'
-}: KioskPageProps) {
-    const getInitialProps = () => {
-        switch (animationDirection) {
-            case 'up': return { opacity: 0, y: 20 };
-            case 'down': return { opacity: 0, y: -20 };
-            case 'left': return { opacity: 0, x: 20 };
-            case 'right': return { opacity: 0, x: -20 };
-            default: return { opacity: 0 };
-        }
-    };
+/**
+ * Premium kiosk page container with sophisticated styling.
+ * Provides consistent layout, animations, and visual treatment.
+ * Fully theme-aware for dark/light modes.
+ */
+export default function KioskPage({ children, maxWidth = 700, noPaper = false }: KioskPageProps) {
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
+
+    const content = (
+        <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.98 }}
+            transition={{
+                duration: 0.4,
+                ease: [0.4, 0, 0.2, 1] // Material ease-out
+            }}
+            style={{ width: '100%' }}
+        >
+            {noPaper ? (
+                <Box sx={{ textAlign: 'center' }}>
+                    {children}
+                </Box>
+            ) : (
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: { xs: 4, md: 6 },
+                        borderRadius: 4,
+                        textAlign: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        background: isDark
+                            ? 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)'
+                            : 'linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%)',
+                        border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)'}`,
+                        transition: 'all 0.4s ease',
+                        // Subtle top accent line
+                        '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '60%',
+                            height: 3,
+                            background: isDark
+                                ? 'linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent)'
+                                : 'linear-gradient(90deg, transparent, rgba(10, 37, 64, 0.4), transparent)',
+                            borderRadius: '0 0 4px 4px',
+                        }
+                    }}
+                >
+                    {children}
+                </Paper>
+            )}
+        </motion.div>
+    );
 
     return (
         <Box
             sx={{
-                height: '100vh',
-                width: '100vw',
+                minHeight: '100vh',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: 'background.default',
-                overflow: 'hidden',
-                background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', // Premium subtle gradient
+                background: isDark
+                    ? 'linear-gradient(135deg, #020617 0%, #0F172A 50%, #020617 100%)'
+                    : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 50%, #F1F5F9 100%)',
+                py: 4,
+                px: 2,
+                transition: 'background 0.4s ease',
             }}
         >
-            <Container maxWidth={typeof maxWidth === 'string' ? maxWidth : false} sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                maxWidth: typeof maxWidth === 'number' ? maxWidth : undefined
-            }}>
-                <motion.div
-                    initial={getInitialProps()}
-                    animate={{ opacity: 1, x: 0, y: 0 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                    style={{ width: '100%' }}
-                >
-                    <Paper
-                        elevation={6}
-                        sx={{
-                            p: { xs: 4, md: 6 },
-                            borderRadius: 4,
-                            textAlign: 'center',
-                            width: '100%',
-                            backdropFilter: 'blur(10px)',
-                            bgcolor: 'rgba(255, 255, 255, 0.9)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                        }}
-                    >
-                        {children}
-                    </Paper>
-                </motion.div>
+            <Container
+                maxWidth={false}
+                sx={{
+                    maxWidth: maxWidth,
+                    width: '100%',
+                }}
+            >
+                {content}
             </Container>
         </Box>
     );

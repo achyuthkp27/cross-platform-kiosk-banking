@@ -35,15 +35,27 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     useEffect(() => {
         // Load language from local storage on mount
-        const storedLang = localStorage.getItem('kiosk_language') as Language;
-        if (storedLang && ['en', 'es', 'nl'].includes(storedLang)) {
-            setLanguageState(storedLang);
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                const storedLang = localStorage.getItem('kiosk_language') as Language;
+                if (storedLang && ['en', 'es', 'nl'].includes(storedLang)) {
+                    setLanguageState(storedLang);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load language preference', e);
         }
     }, []);
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('kiosk_language', lang);
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem('kiosk_language', lang);
+            }
+        } catch (e) {
+            console.error('Failed to save language preference', e);
+        }
     };
 
     const t = (key: TranslationKeys): string => {

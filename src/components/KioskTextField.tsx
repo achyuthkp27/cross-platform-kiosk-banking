@@ -1,84 +1,131 @@
-import React from 'react';
-import { TextField, TextFieldProps } from '@mui/material';
+import React, { useId, useEffect } from 'react';
+import { TextField, TextFieldProps, alpha, useTheme } from '@mui/material';
 import { useKeyboard } from '../context/KeyboardContext';
+import { useThemeContext } from '../context/ThemeContext';
 
-type KioskTextFieldProps = TextFieldProps & {
+interface KioskTextFieldProps extends Omit<TextFieldProps, 'value' | 'onChange'> {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     keyboardType?: 'default' | 'numeric';
-};
+}
 
-export default function KioskTextField(props: KioskTextFieldProps) {
-    const { keyboardType = 'default', onFocus, onChange, value, ...other } = props;
-    const { showKeyboard, hideKeyboard, setInputValue } = useKeyboard();
+/**
+ * Premium text field integrated with virtual keyboard.
+ * Features focus glow, smooth transitions, and enhanced styling.
+ * Fully theme-aware for dark/light modes.
+ */
+export default function KioskTextField({
+    value,
+    onChange,
+    keyboardType = 'default',
+    label,
+    ...props
+}: KioskTextFieldProps) {
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
+    const fieldId = useId();
+    const { showKeyboard, hideKeyboard, setInputValue, isVisible } = useKeyboard();
+
     const [isFocused, setIsFocused] = React.useState(false);
-    const fieldId = React.useRef(Math.random().toString(36).substring(2, 9)).current;
 
-    // Sync external value changes to the virtual keyboard internal state when focused
-    React.useEffect(() => {
-        if (isFocused) {
-            setInputValue(String(value || ''));
+    // Sync formatted value back to keyboard preview
+    // This ensures that when parent applies formatting (e.g., DD/MM/YYYY for DOB),
+    // the keyboard preview shows the formatted value instead of raw input
+    useEffect(() => {
+        if (isVisible && isFocused) {
+            setInputValue(value);
         }
-    }, [value, isFocused, setInputValue]);
+    }, [value, isVisible, setInputValue, isFocused]);
 
-    const handleFocus = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleFocus = () => {
         setIsFocused(true);
-        // Don't show keyboard for select fields
-        if (props.select) {
-            if (onFocus) onFocus(event);
-            return;
-        }
-
-        // Check for maxLength in inputProps or slotProps
-        const maxLength = props.inputProps?.maxLength || (props.slotProps?.htmlInput as any)?.maxLength;
-
+        const labelStr = typeof label === 'string' ? label : 'Input';
         showKeyboard(
-            keyboardType === 'numeric' ? 'numeric' : 'default',
-            String(value || ''),
-            (newValue) => {
-                if (props.onChange) {
-                    // Create a synthetic event
-                    const syntheticEvent = {
-                        target: { value: newValue },
-                        currentTarget: { value: newValue }
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    props.onChange(syntheticEvent);
-                }
+            keyboardType,
+            value,
+            (newValue: string) => {
+                onChange({ target: { value: newValue } } as any);
             },
-            maxLength as number | undefined,
-            (props.label as string) || props.placeholder,
+            undefined,
+            labelStr,
             fieldId
         );
-
-        if (onFocus) {
-            onFocus(event);
-        }
     };
 
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleBlur = () => {
         setIsFocused(false);
-        if (!props.select) {
-            hideKeyboard(fieldId);
-        }
-        if (other.onBlur) {
-            other.onBlur(event);
-        }
+        hideKeyboard(fieldId);
     };
 
     return (
         <TextField
-            {...other}
             value={value}
+            onChange={onChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            InputLabelProps={{
-                shrink: isFocused || (typeof value === 'string' && value.length > 0) || !!other.InputLabelProps?.shrink,
-                ...other.InputLabelProps,
+            label={label}
+            variant="outlined"
+            inputProps={{
+                inputMode: 'none',
+                ...props.inputProps,
             }}
-            slotProps={{
-                htmlInput: {
-                    inputMode: 'none', // vital for suppressing native keyboard
-                    ...props.slotProps?.htmlInput
-                }
+            sx={{
+                '& .MuiOutlinedInput-root': {
+                    borderRadius: 3,
+                    fontSize: '1.125rem',
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '& fieldset': {
+                        borderWidth: 2,
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : theme.palette.divider,
+                        transition: 'all 0.2s ease',
+                    },
+                    '&:hover fieldset': {
+                        borderColor: theme.palette.primary.light,
+                    },
+                    '&.Mui-focused': {
+                        boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, isDark ? 0.2 : 0.1)}`,
+                    },
+                    '&.Mui-focused fieldset': {
+                        borderColor: theme.palette.primary.main,
+                        borderWidth: 2,
+                    },
+                    '&.Mui-error fieldset': {
+                        borderColor: theme.palette.error.main,
+                    },
+                    '&.Mui-error.Mui-focused': {
+                        boxShadow: `0 0 0 4px ${alpha(theme.palette.error.main, 0.1)}`,
+                    },
+                },
+                '& .MuiInputBase-input': {
+                    padding: '16px 18px',
+                    fontSize: '1.125rem',
+                    fontWeight: 500,
+                    color: isDark ? '#F8FAFC' : '#0F172A',
+                    '&::placeholder': {
+                        color: isDark ? 'rgba(148, 163, 184, 0.6)' : 'rgba(100, 116, 139, 0.6)',
+                        opacity: 1,
+                    },
+                },
+                '& .MuiInputLabel-root': {
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    color: isDark ? 'rgba(148, 163, 184, 0.8)' : undefined,
+                    '&.Mui-focused': {
+                        color: theme.palette.primary.main,
+                        fontWeight: 600,
+                    },
+                },
+                '& .MuiFormHelperText-root': {
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    marginLeft: 1,
+                    marginTop: 1,
+                },
+                ...props.sx,
             }}
+            {...props}
         />
     );
 }

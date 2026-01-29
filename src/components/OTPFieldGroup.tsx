@@ -1,26 +1,20 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { Stack } from '@mui/material';
-import KioskTextField from './KioskTextField';
+import React, { useRef, useEffect, useState, useId } from 'react';
+import { Stack, TextField, alpha, Box, useTheme } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useKeyboard } from '../context/KeyboardContext';
+import { useThemeContext } from '../context/ThemeContext';
 
 interface OTPFieldGroupProps {
-    /** Number of OTP digits (default: 6) */
     length?: number;
-    /** Current OTP value as array of strings */
     value: string[];
-    /** Callback when OTP changes */
-    onChange: (newValue: string[]) => void;
-    /** Callback when all digits are entered */
+    onChange: (value: string[]) => void;
     onComplete?: (otp: string) => void;
-    /** Whether the inputs are disabled */
     disabled?: boolean;
-    /** Whether to auto-focus the first field */
     autoFocus?: boolean;
 }
 
 /**
- * A unified OTP input field group component.
- * Handles focus management, character input, and backspace navigation.
- * Works correctly with the virtual keyboard.
+ * Premium OTP input field group with focus glow and completion states.
  */
 export default function OTPFieldGroup({
     length = 6,
@@ -30,126 +24,206 @@ export default function OTPFieldGroup({
     disabled = false,
     autoFocus = true
 }: OTPFieldGroupProps) {
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const { showKeyboard, hideKeyboard } = useKeyboard();
+    const [isComplete, setIsComplete] = useState(false);
+    const fieldId = useId();
 
+    // Check if OTP is complete
+    useEffect(() => {
+        const complete = value.every(v => v.length === 1) && value.length === length;
+        setIsComplete(complete);
+    }, [value, length]);
+
+    // Auto-focus first field
     useEffect(() => {
         if (autoFocus && inputRefs.current[0]) {
-            inputRefs.current[0].focus();
+            setTimeout(() => {
+                inputRefs.current[0]?.focus();
+            }, 500);
         }
     }, [autoFocus]);
 
-    const handleChange = useCallback((newValue: string, index: number) => {
-        // Only allow single digit numbers
-        const digit = newValue.replace(/[^0-9]/g, '').slice(-1);
+    const handleChange = (newValue: string, index: number) => {
+        if (!/^\d*$/.test(newValue)) return;
 
-        const updatedOtp = [...value];
-        updatedOtp[index] = digit;
-        onChange(updatedOtp);
+        const newOtp = [...value];
+        newOtp[index] = newValue.slice(-1);
+        onChange(newOtp);
 
-        // Move to next field if a digit was entered
-        if (digit !== '' && index < length - 1) {
-            // Small delay to ensure state updates before focus change
+        // Move to next field
+        if (newValue && index < length - 1) {
             setTimeout(() => {
                 inputRefs.current[index + 1]?.focus();
-            }, 10);
+            }, 50);
         }
 
         // Check completion
-        const completedOtp = [...updatedOtp];
-        completedOtp[index] = digit;
-        if (completedOtp.every(d => d !== '') && onComplete) {
-            // Small delay to let the UI update
-            setTimeout(() => {
-                onComplete(completedOtp.join(''));
-            }, 50);
-        }
-    }, [value, onChange, onComplete, length]);
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
-        // Handle backspace to move to previous field
-        if (e.key === 'Backspace') {
-            if (value[index] === '' && index > 0) {
-                // If current field is empty, move to previous and clear it
-                const updatedOtp = [...value];
-                updatedOtp[index - 1] = '';
-                onChange(updatedOtp);
-                inputRefs.current[index - 1]?.focus();
-                e.preventDefault();
-            } else if (value[index] !== '') {
-                // Clear current field
-                const updatedOtp = [...value];
-                updatedOtp[index] = '';
-                onChange(updatedOtp);
-                e.preventDefault();
+        if (newValue && index === length - 1) {
+            const finalOtp = newOtp.join('');
+            if (finalOtp.length === length && onComplete) {
+                onComplete(finalOtp);
             }
         }
+    };
 
-        // Handle left arrow to move to previous field
-        if (e.key === 'ArrowLeft' && index > 0) {
+    const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            const newOtp = [...value];
+
+            if (value[index]) {
+                newOtp[index] = '';
+                onChange(newOtp);
+            } else if (index > 0) {
+                newOtp[index - 1] = '';
+                onChange(newOtp);
+                setTimeout(() => {
+                    inputRefs.current[index - 1]?.focus();
+                }, 30);
+            }
+        } else if (e.key === 'ArrowLeft' && index > 0) {
+            e.preventDefault();
             inputRefs.current[index - 1]?.focus();
+        } else if (e.key === 'ArrowRight' && index < length - 1) {
             e.preventDefault();
-        }
-
-        // Handle right arrow to move to next field
-        if (e.key === 'ArrowRight' && index < length - 1) {
             inputRefs.current[index + 1]?.focus();
-            e.preventDefault();
         }
-    }, [value, onChange, length]);
+    };
 
-    const handleFocus = useCallback((index: number) => {
-        // Select the content when focusing
-        const input = inputRefs.current[index];
-        if (input) {
-            input.select();
-        }
-    }, []);
+    const handleFocus = (index: number) => {
+        setActiveIndex(index);
+
+        // Show numeric keyboard with callback for this specific field
+        showKeyboard(
+            'numeric',
+            value[index] || '',
+            (newValue: string) => {
+                // Handle keyboard input
+                const key = newValue.slice(-1);
+                if (key && /^\d$/.test(key)) {
+                    handleChange(key, index);
+                } else if (newValue === '') {
+                    // Backspace was pressed
+                    handleKeyDown({ key: 'Backspace', preventDefault: () => { } } as any, index);
+                }
+            },
+            1, // maxLength of 1 for OTP digits
+            `OTP Digit ${index + 1}`,
+            `${fieldId}-${index}`
+        );
+    };
+
+    const handleBlur = (index: number) => {
+        setActiveIndex(null);
+        setTimeout(() => {
+            const isAnyFieldFocused = inputRefs.current.some(
+                ref => ref === document.activeElement
+            );
+            if (!isAnyFieldFocused) {
+                hideKeyboard(`${fieldId}-${index}`);
+            }
+        }, 100);
+    };
 
     return (
-        <Stack direction="row" spacing={1.5} justifyContent="center" mb={4}>
-            {Array.from({ length }).map((_, index) => (
-                <KioskTextField
-                    key={index}
-                    label=""
-                    value={value[index] || ''}
-                    keyboardType="numeric"
-                    inputRef={(el) => (inputRefs.current[index] = el)}
-                    onChange={(e) => handleChange(e.target.value, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    onFocus={() => handleFocus(index)}
-                    disabled={disabled}
-                    sx={{
-                        width: { xs: 45, sm: 56 },
-                        height: { xs: 56, sm: 64 },
-                        '& .MuiInputBase-root': {
-                            height: '100%',
-                            fontSize: { xs: 24, sm: 28 },
-                            textAlign: 'center',
-                            padding: 0
-                        },
-                        '& .MuiInputBase-input': {
-                            textAlign: 'center',
-                            padding: '0 !important',
-                            height: '100%',
-                            caretColor: 'transparent' // Hide caret for cleaner look
-                        },
-                        '& .MuiInputLabel-root': {
-                            display: 'none'
-                        },
-                        '& .MuiOutlinedInput-notchedOutline legend': {
-                            display: 'none'
-                        }
-                    }}
-                    slotProps={{
-                        htmlInput: {
-                            maxLength: 1,
-                            style: { textAlign: 'center' },
-                            inputMode: 'numeric',
-                            pattern: '[0-9]*'
-                        }
-                    }}
-                />
-            ))}
+        <Stack
+            direction="row"
+            spacing={1.5}
+            justifyContent="center"
+            sx={{ mb: 4, mt: 2 }}
+        >
+            {Array.from({ length }).map((_, index) => {
+                const isFilled = value[index]?.length === 1;
+                const isActive = activeIndex === index;
+
+                return (
+                    <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                    >
+                        <Box
+                            sx={{
+                                position: 'relative',
+                                // Glow effect
+                                '&::before': isActive ? {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: -4,
+                                    left: -4,
+                                    right: -4,
+                                    bottom: -4,
+                                    borderRadius: 3,
+                                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+                                    filter: 'blur(8px)',
+                                    zIndex: -1,
+                                } : {},
+                            }}
+                        >
+                            <TextField
+                                inputRef={(el) => (inputRefs.current[index] = el)}
+                                value={value[index] || ''}
+                                onChange={(e) => handleChange(e.target.value, index)}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
+                                onFocus={() => handleFocus(index)}
+                                onBlur={() => handleBlur(index)}
+                                disabled={disabled}
+                                inputProps={{
+                                    maxLength: 1,
+                                    style: {
+                                        textAlign: 'center',
+                                        fontSize: '2rem',
+                                        fontWeight: 700,
+                                        padding: '16px 0',
+                                        caretColor: 'transparent',
+                                        fontFamily: '"SF Mono", Monaco, monospace',
+                                    },
+                                    inputMode: 'none',
+                                }}
+                                sx={{
+                                    width: 64,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 3,
+                                        bgcolor: isFilled
+                                            ? alpha(theme.palette.primary.main, 0.04)
+                                            : (isDark ? 'rgba(15, 23, 42, 0.6)' : 'white'),
+                                        transition: 'all 0.2s ease',
+                                        '& fieldset': {
+                                            borderWidth: 2,
+                                            borderColor: isComplete
+                                                ? theme.palette.success.main
+                                                : isFilled
+                                                    ? theme.palette.primary.main
+                                                    : theme.palette.divider,
+                                        },
+                                        '&:hover fieldset': {
+                                            borderColor: isComplete
+                                                ? theme.palette.success.main
+                                                : theme.palette.primary.light,
+                                        },
+                                        '&.Mui-focused': {
+                                            boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.1)}`,
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: theme.palette.primary.main,
+                                            borderWidth: 2,
+                                        },
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        color: isComplete ? theme.palette.success.dark : theme.palette.text.primary,
+                                    }
+                                }}
+                            />
+                        </Box>
+                    </motion.div>
+                );
+            })}
         </Stack>
     );
 }

@@ -59,7 +59,7 @@ export default function FloatingLanguageSwitcher() {
                     width: 56,
                     height: 56,
                     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     color: 'primary.main',
                     border: '1px solid',
                     borderColor: 'divider',

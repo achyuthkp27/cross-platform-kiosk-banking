@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, Fade } from '@mui/material';
+import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, Fade, useTheme } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import { useThemeContext } from '../../src/context/ThemeContext';
 
 const steps = ['Select Account', 'Cheque Leaves', 'Delivery Address', 'Review'];
 
 export default function ChequeBookOrder() {
     const router = useRouter();
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
     const [activeStep, setActiveStep] = useState(0);
     const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
     const [selectedLeaves, setSelectedLeaves] = useState<number | null>(null);
@@ -58,8 +62,22 @@ export default function ChequeBookOrder() {
 
     if (isSuccess) {
         return (
-            <Box sx={{ height: '100vh', bgcolor: '#F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Paper elevation={3} sx={{ p: 6, borderRadius: 4, width: '100%', maxWidth: 600 }}>
+            <Box sx={{
+                height: '100vh',
+                bgcolor: isDark ? '#020617' : '#F0F2F5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'bgcolor 0.4s ease',
+            }}>
+                <Paper elevation={3} sx={{
+                    p: 6,
+                    borderRadius: 4,
+                    width: '100%',
+                    maxWidth: 600,
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'white',
+                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                }}>
                     <SuccessState
                         message="Order Placed Successfully"
                         subMessage={`Ref No: CB${Math.floor(Math.random() * 1000000)}\nExpected Delivery: 3-5 Business Days`}
@@ -74,20 +92,46 @@ export default function ChequeBookOrder() {
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#F0F2F5', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{
+            minHeight: '100vh',
+            bgcolor: isDark ? '#020617' : '#F0F2F5',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'bgcolor 0.4s ease',
+        }}>
             {/* Header */}
-            <Paper elevation={1} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Paper elevation={1} sx={{
+                p: 2,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'white',
+                borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+            }}>
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>Request Cheque Book</Typography>
-                <Button color="error" onClick={() => router.push('/dashboard')} sx={{ mr: 10 }}>Cancel</Button>
+                <Button color="error" onClick={() => router.push('/dashboard')} sx={{ mr: 18 }}>Cancel</Button>
             </Paper>
 
             <Box sx={{ flexGrow: 1, p: 4, display: 'flex', justifyContent: 'center' }}>
-                <Paper elevation={0} sx={{ width: '100%', maxWidth: 900, p: 4, borderRadius: 4, bgcolor: 'white' }}>
+                <Paper elevation={0} sx={{
+                    width: '100%',
+                    maxWidth: 900,
+                    p: 4,
+                    borderRadius: 4,
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                }}>
 
                     <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 6 }}>
                         {steps.map((label) => (
                             <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
+                                <StepLabel sx={{
+                                    '& .MuiStepLabel-label': {
+                                        color: isDark ? '#94A3B8' : 'text.secondary',
+                                        '&.Mui-active': { color: 'primary.main' },
+                                        '&.Mui-completed': { color: isDark ? '#4ADE80' : 'success.main' },
+                                    }
+                                }}>{label}</StepLabel>
                             </Step>
                         ))}
                     </Stepper>
@@ -110,18 +154,20 @@ export default function ChequeBookOrder() {
                                                 sx={{
                                                     cursor: 'pointer',
                                                     border: selectedAccount === acc.id ? '2px solid' : '1px solid',
-                                                    borderColor: selectedAccount === acc.id ? 'primary.main' : '#e0e0e0',
-                                                    bgcolor: selectedAccount === acc.id ? 'primary.50' : 'white',
+                                                    borderColor: selectedAccount === acc.id ? 'primary.main' : (isDark ? 'rgba(255,255,255,0.1)' : '#e0e0e0'),
+                                                    bgcolor: selectedAccount === acc.id
+                                                        ? (isDark ? 'rgba(56, 189, 248, 0.1)' : 'primary.50')
+                                                        : (isDark ? 'rgba(15, 23, 42, 0.6)' : 'white'),
                                                     transition: 'all 0.2s'
                                                 }}
                                             >
                                                 <CardContent>
                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">{acc.type}</Typography>
+                                                        <Typography variant="subtitle1" fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{acc.type}</Typography>
                                                         {selectedAccount === acc.id && <CheckCircleIcon color="primary" />}
                                                     </Box>
-                                                    <Typography variant="h5" sx={{ my: 1 }}>{acc.number}</Typography>
-                                                    <Typography variant="body2" color="text.secondary">Balance: {acc.balance}</Typography>
+                                                    <Typography variant="h5" sx={{ my: 1, color: isDark ? '#E2E8F0' : 'text.primary' }}>{acc.number}</Typography>
+                                                    <Typography variant="body2" color={isDark ? '#94A3B8' : 'text.secondary'}>Balance: {acc.balance}</Typography>
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -141,13 +187,15 @@ export default function ChequeBookOrder() {
                                                     textAlign: 'center',
                                                     p: 2,
                                                     border: selectedLeaves === leaves ? '2px solid' : '1px solid',
-                                                    borderColor: selectedLeaves === leaves ? 'primary.main' : '#e0e0e0',
-                                                    bgcolor: selectedLeaves === leaves ? 'primary.50' : 'white'
+                                                    borderColor: selectedLeaves === leaves ? 'primary.main' : (isDark ? 'rgba(255,255,255,0.1)' : '#e0e0e0'),
+                                                    bgcolor: selectedLeaves === leaves
+                                                        ? (isDark ? 'rgba(56, 189, 248, 0.1)' : 'primary.50')
+                                                        : (isDark ? 'rgba(15, 23, 42, 0.6)' : 'white')
                                                 }}
                                             >
                                                 <CardContent>
                                                     <Typography variant="h3" color="primary" fontWeight="bold">{leaves}</Typography>
-                                                    <Typography variant="body1">Leaves</Typography>
+                                                    <Typography variant="body1" color={isDark ? '#94A3B8' : 'text.secondary'}>Leaves</Typography>
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -155,12 +203,16 @@ export default function ChequeBookOrder() {
                                 </Grid>
                             )}
 
-                            {/* Step 2: Address */}
+                            {/* Step 3: Address */}
                             {activeStep === 2 && (
                                 <Box sx={{ maxWidth: 500, mx: 'auto' }}>
-                                    <Typography variant="h6" gutterBottom>Delivery Address</Typography>
-                                    <Paper variant="outlined" sx={{ p: 3, bgcolor: '#fafafa' }}>
-                                        <Typography variant="body1" fontWeight="bold" sx={{ mb: 2 }}>Registered Address:</Typography>
+                                    <Typography variant="h6" gutterBottom color={isDark ? '#F8FAFC' : 'text.primary'}>Delivery Address</Typography>
+                                    <Paper variant="outlined" sx={{
+                                        p: 3,
+                                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : '#fafafa',
+                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.12)',
+                                    }}>
+                                        <Typography variant="body1" fontWeight="bold" sx={{ mb: 2, color: isDark ? '#F8FAFC' : 'text.primary' }}>Registered Address:</Typography>
 
                                         {isEditingAddress ? (
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -170,7 +222,6 @@ export default function ChequeBookOrder() {
                                                     onChange={(e) => setDeliveryAddress({ ...deliveryAddress, line1: e.target.value })}
                                                     fullWidth
                                                     size="small"
-                                                    sx={{ bgcolor: 'white' }}
                                                 />
                                                 <KioskTextField
                                                     label="Line 2"
@@ -178,7 +229,6 @@ export default function ChequeBookOrder() {
                                                     onChange={(e) => setDeliveryAddress({ ...deliveryAddress, line2: e.target.value })}
                                                     fullWidth
                                                     size="small"
-                                                    sx={{ bgcolor: 'white' }}
                                                 />
                                                 <Box sx={{ display: 'flex', gap: 2 }}>
                                                     <KioskTextField
@@ -187,7 +237,6 @@ export default function ChequeBookOrder() {
                                                         onChange={(e) => setDeliveryAddress({ ...deliveryAddress, city: e.target.value })}
                                                         fullWidth
                                                         size="small"
-                                                        sx={{ bgcolor: 'white' }}
                                                     />
                                                     <KioskTextField
                                                         label="PIN"
@@ -196,15 +245,14 @@ export default function ChequeBookOrder() {
                                                         onChange={(e) => setDeliveryAddress({ ...deliveryAddress, pin: e.target.value })}
                                                         fullWidth
                                                         size="small"
-                                                        sx={{ bgcolor: 'white' }}
                                                     />
                                                 </Box>
                                             </Box>
                                         ) : (
                                             <Box>
-                                                <Typography variant="body1">{deliveryAddress.line1}</Typography>
-                                                <Typography variant="body1">{deliveryAddress.line2}</Typography>
-                                                <Typography variant="body1">{deliveryAddress.city} - {deliveryAddress.pin}</Typography>
+                                                <Typography variant="body1" color={isDark ? '#E2E8F0' : 'text.primary'}>{deliveryAddress.line1}</Typography>
+                                                <Typography variant="body1" color={isDark ? '#E2E8F0' : 'text.primary'}>{deliveryAddress.line2}</Typography>
+                                                <Typography variant="body1" color={isDark ? '#E2E8F0' : 'text.primary'}>{deliveryAddress.city} - {deliveryAddress.pin}</Typography>
                                             </Box>
                                         )}
 
@@ -223,28 +271,32 @@ export default function ChequeBookOrder() {
                             {/* Step 4: Review */}
                             {activeStep === 3 && (
                                 <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-                                    <Typography variant="h6" gutterBottom>Review Order</Typography>
-                                    <Paper variant="outlined" sx={{ p: 3 }}>
+                                    <Typography variant="h6" gutterBottom color={isDark ? '#F8FAFC' : 'text.primary'}>Review Order</Typography>
+                                    <Paper variant="outlined" sx={{
+                                        p: 3,
+                                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'white',
+                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.12)',
+                                    }}>
                                         <Grid container spacing={2}>
-                                            <Grid size={6}><Typography color="text.secondary">Account</Typography></Grid>
-                                            <Grid size={6}><Typography fontWeight="bold">{accounts.find(a => a.id === selectedAccount)?.number}</Typography></Grid>
+                                            <Grid size={6}><Typography color={isDark ? '#94A3B8' : 'text.secondary'}>Account</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{accounts.find(a => a.id === selectedAccount)?.number}</Typography></Grid>
 
-                                            <Grid size={6}><Typography color="text.secondary">Cheque Book Size</Typography></Grid>
-                                            <Grid size={6}><Typography fontWeight="bold">{selectedLeaves} Leaves</Typography></Grid>
+                                            <Grid size={6}><Typography color={isDark ? '#94A3B8' : 'text.secondary'}>Cheque Book Size</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{selectedLeaves} Leaves</Typography></Grid>
 
-                                            <Grid size={6}><Typography color="text.secondary">Delivery To</Typography></Grid>
-                                            <Grid size={6}><Typography fontWeight="bold">{deliveryAddress.pin}</Typography></Grid>
+                                            <Grid size={6}><Typography color={isDark ? '#94A3B8' : 'text.secondary'}>Delivery To</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{deliveryAddress.pin}</Typography></Grid>
 
-                                            <Grid size={12}><Divider sx={{ my: 1 }} /></Grid>
+                                            <Grid size={12}><Divider sx={{ my: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }} /></Grid>
 
-                                            <Grid size={6}><Typography variant="h6">Total Charges</Typography></Grid>
+                                            <Grid size={6}><Typography variant="h6" color={isDark ? '#F8FAFC' : 'text.primary'}>Total Charges</Typography></Grid>
                                             <Grid size={6}><Typography variant="h6" color="primary">Free</Typography></Grid>
                                         </Grid>
                                     </Paper>
                                     <Box sx={{ mt: 3 }}>
                                         <FormControlLabel
                                             control={<Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />}
-                                            label="I confirm the above details are correct."
+                                            label={<Typography color={isDark ? '#E2E8F0' : 'text.primary'}>I confirm the above details are correct.</Typography>}
                                         />
                                     </Box>
                                 </Box>
@@ -259,7 +311,19 @@ export default function ChequeBookOrder() {
                             onClick={handleBack}
                             variant="outlined"
                             size="large"
-                            sx={{ minWidth: 120, borderRadius: 2 }}
+                            sx={{
+                                minWidth: 120,
+                                borderRadius: 2,
+                                borderColor: isDark ? 'rgba(255,255,255,0.2)' : undefined,
+                                color: isDark ? '#F8FAFC' : undefined,
+                                '&:hover': {
+                                    borderColor: isDark ? 'rgba(255,255,255,0.4)' : undefined,
+                                },
+                                '&:disabled': {
+                                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : undefined,
+                                    color: isDark ? 'rgba(255,255,255,0.3)' : undefined,
+                                }
+                            }}
                         >
                             Back
                         </Button>

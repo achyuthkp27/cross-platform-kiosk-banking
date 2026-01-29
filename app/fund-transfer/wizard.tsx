@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Stack } from '@mui/material';
+import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Stack, useTheme } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,6 +7,7 @@ import SuccessState from '../../src/components/SuccessState';
 import KioskPage from '../../src/components/KioskPage';
 import WizardStepper from '../../src/components/WizardStepper';
 import ActionButtons from '../../src/components/ActionButtons';
+import { useThemeContext } from '../../src/context/ThemeContext';
 
 const MOCK_ACCOUNTS = [
     { id: '1', number: 'xxxx1234', type: 'Savings', balance: 50000 },
@@ -28,6 +29,9 @@ interface FormState {
 
 export default function FundTransferWizard() {
     const router = useRouter();
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState<FormState>({
@@ -169,7 +173,7 @@ export default function FundTransferWizard() {
                                 </Button>
                             </>
                         ) : (
-                            <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 3, textAlign: 'left', mb: 2 }}>
+                            <Box sx={{ p: 3, border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#ddd'}`, borderRadius: 3, textAlign: 'left', mb: 2, bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'transparent' }}>
                                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">New Beneficiary Details</Typography>
                                 <Grid container spacing={2}>
                                     <Grid size={12}>
@@ -244,7 +248,7 @@ export default function FundTransferWizard() {
                     <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <Typography variant="h6" gutterBottom align="left">Review & Confirm</Typography>
 
-                        <Stack spacing={2} sx={{ mb: 4, p: 3, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 3, textAlign: 'left' }}>
+                        <Stack spacing={2} sx={{ mb: 4, p: 3, bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: 3, textAlign: 'left', border: isDark ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
                             <Box>
                                 <Typography variant="caption" color="text.secondary">From Account</Typography>
                                 <Typography variant="body1" fontWeight="bold">

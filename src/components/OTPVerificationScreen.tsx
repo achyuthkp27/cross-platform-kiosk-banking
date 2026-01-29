@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Button, Box } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+import { useKeyboard } from '../context/KeyboardContext';
 import KioskPage from './KioskPage';
 import OTPFieldGroup from './OTPFieldGroup';
 import SuccessState from './SuccessState';
@@ -72,9 +73,12 @@ export default function OTPVerificationScreen({
         }
     }, [timer]);
 
+    const { hideKeyboard } = useKeyboard();
+
     const handleVerify = (otpValue?: string) => {
         const finalOtp = otpValue || otp.join('');
         if (finalOtp.length === 6) {
+            hideKeyboard();
             setIsSuccess(true);
             // Call the onVerify callback after showing success animation briefly
             setTimeout(() => {

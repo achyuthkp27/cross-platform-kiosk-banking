@@ -34,7 +34,7 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
 
     // We hold a reference to the onChange handler of the currently focused input
     const onChangeRef = useRef<((value: string) => void) | undefined>(undefined);
-    const hideTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const activeFieldIdRef = useRef<string | null>(null);
 
     const showKeyboard = useCallback((

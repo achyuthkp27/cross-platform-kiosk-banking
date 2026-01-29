@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Card, CardContent } from '@mui/material';
+import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Card, CardContent, useTheme } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { ElectricBolt, WaterDrop, Smartphone, Wifi, LocalGasStation } from '@mui
 import KioskPage from '../../src/components/KioskPage';
 import WizardStepper from '../../src/components/WizardStepper';
 import ActionButtons from '../../src/components/ActionButtons';
+import { useThemeContext } from '../../src/context/ThemeContext';
 
 const CATEGORIES = [
     { id: 'electricity', name: 'Electricity', icon: <ElectricBolt fontSize="large" /> },
@@ -27,6 +28,9 @@ const BILLERS = {
 
 export default function BillPaymentWizard() {
     const router = useRouter();
+    const theme = useTheme();
+    const { mode } = useThemeContext();
+    const isDark = mode === 'dark';
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [category, setCategory] = useState('');
@@ -103,8 +107,9 @@ export default function BillPaymentWizard() {
                                             p: 2,
                                             borderRadius: 3,
                                             border: '2px solid transparent',
+                                            bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'background.paper',
                                             '&:hover': {
-                                                bgcolor: 'rgba(0,0,0,0.02)',
+                                                bgcolor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(0,0,0,0.02)',
                                                 transform: 'translateY(-4px)',
                                                 borderColor: 'primary.main'
                                             },
@@ -187,7 +192,7 @@ export default function BillPaymentWizard() {
                     <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                         <Typography variant="h6" gutterBottom align="left">Confirm Payment</Typography>
 
-                        <Card sx={{ bgcolor: 'rgba(25, 118, 210, 0.04)', mb: 4, borderRadius: 3, border: '1px solid rgba(25, 118, 210, 0.1)' }}>
+                        <Card sx={{ bgcolor: isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(25, 118, 210, 0.04)', mb: 4, borderRadius: 3, border: isDark ? '1px solid rgba(56, 189, 248, 0.2)' : '1px solid rgba(25, 118, 210, 0.1)' }}>
                             <CardContent sx={{ textAlign: 'left' }}>
                                 <Grid container spacing={3}>
                                     <Grid size={6}>

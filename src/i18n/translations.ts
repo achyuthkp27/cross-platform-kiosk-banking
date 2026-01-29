@@ -79,6 +79,18 @@ export const translations = {
             address: 'Delivery Address',
             order: 'Order Now',
         },
+        account_statement: {
+            title: 'Account Statement',
+            subtitle: 'View your recent transactions',
+            no_transactions: 'No transactions found',
+        },
+        errors: {
+            invalid_otp: 'Invalid OTP. Please try again.',
+            otp_expired: 'OTP has expired. Please request a new one.',
+            network_error: 'Network error. Please check your connection.',
+            session_expired: 'Your session has expired. Please login again.',
+            something_wrong: 'Something went wrong. Please try again.',
+        },
     },
     es: {
         landing: {
@@ -158,6 +170,18 @@ export const translations = {
             address: 'Dirección de Entrega',
             order: 'Pedir Ahora',
         },
+        account_statement: {
+            title: 'Extracto de Cuenta',
+            subtitle: 'Ver sus transacciones recientes',
+            no_transactions: 'No se encontraron transacciones',
+        },
+        errors: {
+            invalid_otp: 'OTP inválido. Por favor, inténtelo de nuevo.',
+            otp_expired: 'El OTP ha expirado. Por favor, solicite uno nuevo.',
+            network_error: 'Error de red. Por favor, verifique su conexión.',
+            session_expired: 'Su sesión ha expirado. Por favor, inicie sesión de nuevo.',
+            something_wrong: 'Algo salió mal. Por favor, inténtelo de nuevo.',
+        },
     },
     nl: {
         landing: {
@@ -236,6 +260,18 @@ export const translations = {
             leaves: 'Aantal Blaadjes',
             address: 'Bezorgadres',
             order: 'Bestel Nu',
+        },
+        account_statement: {
+            title: 'Rekeningafschrift',
+            subtitle: 'Bekijk uw recente transacties',
+            no_transactions: 'Geen transacties gevonden',
+        },
+        errors: {
+            invalid_otp: 'Ongeldige OTP. Probeer het opnieuw.',
+            otp_expired: 'OTP is verlopen. Vraag een nieuwe aan.',
+            network_error: 'Netwerkfout. Controleer uw verbinding.',
+            session_expired: 'Uw sessie is verlopen. Log opnieuw in.',
+            something_wrong: 'Er is iets misgegaan. Probeer het opnieuw.',
         },
     },
 };

@@ -101,7 +101,6 @@ export default function LoginScreen() {
                 primaryText={t('common.next')}
                 secondaryText={t('common.back')}
                 primaryDisabled={!userId || !dob}
-                sx={{ mt: 4 }}
             />
         </KioskPage>
     );
