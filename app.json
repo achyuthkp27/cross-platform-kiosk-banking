@@ -28,9 +28,7 @@
       "output": "static",
       "bundler": "metro"
     },
-    "experiments": {
-      "baseUrl": "/cross-platform-kiosk-banking"
-    },
+    "experiments": {},
     "plugins": [
       "expo-router"
     ]

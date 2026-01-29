@@ -8,6 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build:web": "expo export --platform web",
+    "build:tauri": "expo export --platform web && npx tauri build",
+    "build:ghpages": "cross-env BUILD_TARGET=ghpages expo export --platform web",
     "tauri": "tauri",
     "desktop": "npx tauri dev",
     "test": "jest",
@@ -38,6 +40,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
+    "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
