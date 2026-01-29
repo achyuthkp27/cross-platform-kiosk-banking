@@ -135,6 +135,8 @@ export default function OTPFieldGroup({
             direction="row"
             spacing={1.5}
             justifyContent="center"
+            role="group"
+            aria-label="OTP input fields"
             sx={{ mb: 4, mt: 2 }}
         >
             {Array.from({ length }).map((_, index) => {

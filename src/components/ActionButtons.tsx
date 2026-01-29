@@ -63,6 +63,7 @@ export default function ActionButtons({
                         onClick={onSecondary}
                         disabled={secondaryDisabled || loading}
                         fullWidth={fullWidth}
+                        aria-label={secondaryText}
                         sx={{
                             height: 56,
                             borderRadius: 3,
@@ -104,6 +105,8 @@ export default function ActionButtons({
                     onClick={onPrimary}
                     disabled={primaryDisabled || loading}
                     fullWidth={fullWidth}
+                    aria-label={primaryText}
+                    aria-busy={loading}
                     sx={{
                         height: 56,
                         borderRadius: 3,

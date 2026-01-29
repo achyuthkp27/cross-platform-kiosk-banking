@@ -18,6 +18,9 @@ const ThemeToggle = ({ sx, inline = false }: ThemeToggleProps) => {
     const buttonElement = (
         <IconButton
             onClick={toggleTheme}
+            aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+            role="switch"
+            aria-checked={isDark}
             sx={{
                 width: 56,
                 height: 56,
