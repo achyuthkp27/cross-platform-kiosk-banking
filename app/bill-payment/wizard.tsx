@@ -217,7 +217,7 @@ export default function BillPaymentWizard() {
                                     </Grid>
                                     <Grid size={12}>
                                         <Typography variant="caption" color="text.secondary">Bill Amount</Typography>
-                                        <Typography variant="h3" color="primary" fontWeight="bold" sx={{ mt: 1 }}>₹{billDetails.amount}</Typography>
+                                        <Typography variant="h3" color="primary" fontWeight="bold" sx={{ mt: 1 }}>${billDetails.amount}</Typography>
                                     </Grid>
                                 </Grid>
                             </CardContent>

@@ -146,7 +146,7 @@ export default function FundTransferWizard() {
                         >
                             {MOCK_ACCOUNTS.map((acc) => (
                                 <MenuItem key={acc.id} value={acc.id}>
-                                    {acc.type} - {acc.number} (Balance: ₹{acc.balance})
+                                    {acc.type} - {acc.number} (Balance: ${acc.balance})
                                 </MenuItem>
                             ))}
                         </KioskTextField>
@@ -227,7 +227,7 @@ export default function FundTransferWizard() {
 
                         <KioskTextField
                             fullWidth
-                            label="Amount (₹)"
+                            label="Amount ($)"
                             value={form.amount}
                             keyboardType="numeric"
                             onChange={(e) => setForm({ ...form, amount: e.target.value })}
@@ -265,7 +265,7 @@ export default function FundTransferWizard() {
                             </Box>
                             <Box>
                                 <Typography variant="caption" color="text.secondary">Amount</Typography>
-                                <Typography variant="h3" color="primary" fontWeight="bold">₹{form.amount}</Typography>
+                                <Typography variant="h3" color="primary" fontWeight="bold">${form.amount}</Typography>
                             </Box>
                             {form.remarks && (
                                 <Box>

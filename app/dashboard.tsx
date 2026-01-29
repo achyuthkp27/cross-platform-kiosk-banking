@@ -187,7 +187,7 @@ export default function Dashboard() {
                                             Total Balance
                                         </Typography>
                                         <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: '"SF Mono", monospace' }}>
-                                            ₹{totalBalance.toLocaleString('en-IN')}
+                                            ${totalBalance.toLocaleString()}
                                         </Typography>
                                     </Paper>
                                 </motion.div>
@@ -221,7 +221,7 @@ export default function Dashboard() {
                                                 </Typography>
                                             </Box>
                                             <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>
-                                                ₹{account.balance.toLocaleString('en-IN')}
+                                                ${account.balance.toLocaleString()}
                                             </Typography>
                                         </Paper>
                                     </motion.div>

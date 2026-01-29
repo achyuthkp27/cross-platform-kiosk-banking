@@ -1,26 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, CircularProgress, alpha, useTheme } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, CircularProgress, alpha, useTheme, IconButton, Modal, Stack, Divider } from '@mui/material';
 import { useRouter } from 'expo-router';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import DownloadIcon from '@mui/icons-material/Download';
+import PrintIcon from '@mui/icons-material/Print';
+import CloseIcon from '@mui/icons-material/Close';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useThemeContext } from '../../src/context/ThemeContext';
+import { useToast } from '../../src/context/ToastContext';
 
-// Mock Data
+// Mock Data with categories
 const MOCK_DATA = {
     accountName: 'John Doe',
     accountNumber: '**** **** **** 1234',
     accountType: 'Savings Account',
     balance: 12450.75,
     transactions: [
-        { id: 1, date: '29/01/2026', desc: 'UPI Transfer - Walmart', type: 'DEBIT', amount: 45.00 },
-        { id: 2, date: '28/01/2026', desc: 'Salary Credit', type: 'CREDIT', amount: 5000.00 },
-        { id: 3, date: '25/01/2026', desc: 'ATM Withdrawal', type: 'DEBIT', amount: 200.00 },
-        { id: 4, date: '22/01/2026', desc: 'Netflix Subscription', type: 'DEBIT', amount: 15.99 },
-        { id: 5, date: '20/01/2026', desc: 'Dividends', type: 'CREDIT', amount: 120.50 },
+        { id: 1, date: '29/01/2026', desc: 'UPI Transfer - Walmart', category: 'Shopping', type: 'DEBIT', amount: 45.00 },
+        { id: 2, date: '28/01/2026', desc: 'Salary Credit - Acme Corp', category: 'Income', type: 'CREDIT', amount: 5000.00 },
+        { id: 3, date: '25/01/2026', desc: 'ATM Withdrawal', category: 'Cash', type: 'DEBIT', amount: 200.00 },
+        { id: 4, date: '22/01/2026', desc: 'Netflix Subscription', category: 'Entertainment', type: 'DEBIT', amount: 15.99 },
+        { id: 5, date: '20/01/2026', desc: 'Dividends - AAPL', category: 'Investment', type: 'CREDIT', amount: 120.50 },
+        { id: 6, date: '18/01/2026', desc: 'Uber Ride', category: 'Transport', type: 'DEBIT', amount: 24.50 },
+        { id: 7, date: '15/01/2026', desc: 'Electric Bill - BESCOM', category: 'Utilities', type: 'DEBIT', amount: 85.00 },
+        { id: 8, date: '12/01/2026', desc: 'Freelance Payment', category: 'Income', type: 'CREDIT', amount: 750.00 },
+        { id: 9, date: '10/01/2026', desc: 'Amazon Purchase', category: 'Shopping', type: 'DEBIT', amount: 129.99 },
+        { id: 10, date: '08/01/2026', desc: 'Interest Credit', category: 'Interest', type: 'CREDIT', amount: 42.30 },
+        { id: 11, date: '05/01/2026', desc: 'Gas Station - Shell', category: 'Transport', type: 'DEBIT', amount: 55.00 },
+        { id: 12, date: '02/01/2026', desc: 'Restaurant - Olive Garden', category: 'Food', type: 'DEBIT', amount: 78.50 },
     ]
 };
+
+const CATEGORIES = ['All', 'Shopping', 'Income', 'Cash', 'Entertainment', 'Investment', 'Transport', 'Utilities', 'Food', 'Interest'];
 
 const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
     const [count, setCount] = useState(0);
@@ -49,8 +63,34 @@ export default function AccountStatementView() {
     const router = useRouter();
     const theme = useTheme();
     const { mode } = useThemeContext();
+    const { showSuccess, showInfo } = useToast();
     const isDark = mode === 'dark';
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedTransaction, setSelectedTransaction] = useState<typeof MOCK_DATA.transactions[0] | null>(null);
+
+    // Filter transactions based on category
+    const filteredTransactions = selectedCategory === 'All'
+        ? MOCK_DATA.transactions
+        : MOCK_DATA.transactions.filter(t => t.category === selectedCategory);
+
+    // Export handler
+    const handleExport = () => {
+        const data = filteredTransactions.map(t => `${t.date},${t.desc},${t.category},${t.type},${t.amount}`).join('\n');
+        const blob = new Blob([`Date,Description,Category,Type,Amount\n${data}`], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transactions.csv';
+        a.click();
+        showSuccess('Statement exported as CSV');
+    };
+
+    // Print handler
+    const handlePrint = () => {
+        window.print();
+        showInfo('Print dialog opened');
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -114,20 +154,44 @@ export default function AccountStatementView() {
                             Welcome back, {MOCK_DATA.accountName}
                         </Typography>
                     </Box>
-                    <Button
-                        variant="outlined"
-                        startIcon={<ArrowBackIcon />}
-                        onClick={() => router.replace('/dashboard')}
-                        sx={{
-                            borderRadius: 3,
-                            mr: 18,
-                            borderWidth: 2,
-                            fontWeight: 600,
-                            '&:hover': { borderWidth: 2 }
-                        }}
-                    >
-                        Dashboard
-                    </Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            variant="outlined"
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => router.replace('/dashboard')}
+                            sx={{
+                                borderRadius: 3,
+                                borderWidth: 2,
+                                fontWeight: 600,
+                                '&:hover': { borderWidth: 2 }
+                            }}
+                        >
+                            Dashboard
+                        </Button>
+                    </Box>
+                </Box>
+            </motion.div>
+
+            {/* Category Filter Chips */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+            >
+                <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {CATEGORIES.map((cat) => (
+                        <Chip
+                            key={cat}
+                            label={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            variant={selectedCategory === cat ? 'filled' : 'outlined'}
+                            color={selectedCategory === cat ? 'primary' : 'default'}
+                            sx={{
+                                fontWeight: 600,
+                                transition: 'all 0.2s ease',
+                            }}
+                        />
+                    ))}
                 </Box>
             </motion.div>
 
@@ -229,50 +293,73 @@ export default function AccountStatementView() {
                                     Recent Transactions
                                 </Typography>
                                 <Chip
-                                    label={`${MOCK_DATA.transactions.length} entries`}
+                                    label={`${filteredTransactions.length} entries`}
                                     size="small"
                                     variant="outlined"
                                     sx={{ fontWeight: 500 }}
                                 />
                             </Box>
 
-                            <TableContainer>
-                                <Table>
+                            <TableContainer sx={{ maxHeight: 600 }}>
+                                <Table stickyHeader>
                                     <TableHead>
-                                        <TableRow sx={{ bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : '#F8FAFC' }}>
+                                        <TableRow sx={{
+                                            '& th': {
+                                                bgcolor: isDark ? 'rgba(15, 23, 42, 1)' : '#F8FAFC',
+                                                zIndex: 1
+                                            }
+                                        }}>
                                             <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Date</TableCell>
                                             <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Description</TableCell>
+                                            <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Category</TableCell>
                                             <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Type</TableCell>
                                             <TableCell align="right" sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Amount</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {MOCK_DATA.transactions.map((row, index) => (
+                                        {filteredTransactions.map((row, index) => (
                                             <motion.tr
                                                 key={row.id}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.3 + index * 0.05 }}
+                                                transition={{ delay: 0.2 + index * 0.05 }}
+                                                onClick={() => setSelectedTransaction(row)}
                                                 style={{
                                                     display: 'table-row',
+                                                    cursor: 'pointer',
                                                 }}
+                                                whileHover={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
                                             >
                                                 <TableCell sx={{
                                                     fontFamily: '"SF Mono", monospace',
                                                     fontSize: '0.875rem',
                                                     color: isDark ? '#94A3B8' : 'text.secondary',
-                                                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'white',
+                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                                                 }}>
                                                     {row.date}
                                                 </TableCell>
                                                 <TableCell sx={{
                                                     fontWeight: 500,
                                                     color: isDark ? '#F8FAFC' : 'text.primary',
-                                                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'white',
+                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                                                 }}>
                                                     {row.desc}
                                                 </TableCell>
-                                                <TableCell sx={{ bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'white' }}>
+                                                <TableCell sx={{
+                                                    color: isDark ? '#94A3B8' : 'text.secondary',
+                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                                }}>
+                                                    <Chip
+                                                        label={row.category}
+                                                        size="small"
+                                                        sx={{
+                                                            height: 24,
+                                                            bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                                                            fontSize: '0.75rem',
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                                <TableCell sx={{ borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>
                                                     <Chip
                                                         icon={row.type === 'CREDIT'
                                                             ? <TrendingUpIcon sx={{ fontSize: 16 }} />
@@ -304,7 +391,7 @@ export default function AccountStatementView() {
                                                         fontWeight: 700,
                                                         fontFamily: '"SF Mono", monospace',
                                                         fontSize: '0.95rem',
-                                                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : 'white',
+                                                        borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                                                     }}
                                                 >
                                                     {row.type === 'DEBIT' ? '-' : '+'}${row.amount.toFixed(2)}
@@ -318,6 +405,121 @@ export default function AccountStatementView() {
                     </motion.div>
                 </Grid>
             </Grid>
+
+            {/* Transaction Details Modal */}
+            <Modal
+                open={!!selectedTransaction}
+                onClose={() => setSelectedTransaction(null)}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                }}
+            >
+                <Box component={motion.div}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    sx={{
+                        outline: 'none',
+                    }}
+                >
+                    {selectedTransaction && (
+                        <Paper
+                            sx={{
+                                width: 400,
+                                maxWidth: '100%',
+                                borderRadius: 4,
+                                overflow: 'hidden',
+                                bgcolor: isDark ? '#1E293B' : 'white',
+                                boxShadow: 24,
+                            }}
+                        >
+                            <Box sx={{
+                                p: 3,
+                                bgcolor: isDark ? '#0F172A' : '#F8FAFC',
+                                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                            }}>
+                                <Typography variant="h6" fontWeight={700}>
+                                    Transaction Details
+                                </Typography>
+                                <IconButton
+                                    onClick={() => setSelectedTransaction(null)}
+                                    size="small"
+                                    sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+                                >
+                                    <CloseIcon />
+                                </IconButton>
+                            </Box>
+
+                            <Box sx={{ p: 4, textAlign: 'center' }}>
+                                <Box sx={{
+                                    display: 'inline-flex',
+                                    p: 2,
+                                    borderRadius: '50%',
+                                    bgcolor: selectedTransaction.type === 'CREDIT'
+                                        ? alpha(theme.palette.success.main, 0.1)
+                                        : alpha(theme.palette.text.secondary, 0.1),
+                                    mb: 2,
+                                }}>
+                                    {selectedTransaction.type === 'CREDIT'
+                                        ? <TrendingUpIcon sx={{ fontSize: 40, color: 'success.main' }} />
+                                        : <ReceiptLongIcon sx={{ fontSize: 40, color: 'text.secondary' }} />
+                                    }
+                                </Box>
+
+                                <Typography variant="h4" fontWeight={700} sx={{ mb: 1, fontFamily: '"SF Mono", monospace' }}>
+                                    {selectedTransaction.type === 'DEBIT' ? '-' : '+'}${selectedTransaction.amount.toFixed(2)}
+                                </Typography>
+                                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                                    {selectedTransaction.desc}
+                                </Typography>
+
+                                <Stack spacing={2}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="body2" color="text.secondary">Date</Typography>
+                                        <Typography variant="body2" fontWeight={600}>{selectedTransaction.date}</Typography>
+                                    </Box>
+                                    <Divider />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="body2" color="text.secondary">Category</Typography>
+                                        <Chip label={selectedTransaction.category} size="small" />
+                                    </Box>
+                                    <Divider />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="body2" color="text.secondary">Type</Typography>
+                                        <Typography variant="body2" fontWeight={600} color={selectedTransaction.type === 'CREDIT' ? 'success.main' : 'text.primary'}>
+                                            {selectedTransaction.type}
+                                        </Typography>
+                                    </Box>
+                                    <Divider />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
+                                        <Typography variant="body2" fontFamily="'SF Mono', monospace">TXN{selectedTransaction.id}9923</Typography>
+                                    </Box>
+                                </Stack>
+
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    startIcon={<PrintIcon />}
+                                    sx={{ mt: 4, borderRadius: 3, py: 1.5 }}
+                                    onClick={() => {
+                                        window.print();
+                                        showInfo('Printing receipt...');
+                                    }}
+                                >
+                                    Print Receipt
+                                </Button>
+                            </Box>
+                        </Paper>
+                    )}
+                </Box>
+            </Modal>
         </Box>
     );
 }
