@@ -24,7 +24,12 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "static",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "baseUrl": "/cross-platform-kiosk-banking"
     },
     "plugins": [
       "expo-router"
