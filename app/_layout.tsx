@@ -2,6 +2,10 @@ import React, { useEffect } from 'react';
 import { Stack, useRouter, useRootNavigationState, usePathname } from 'expo-router';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from '../src/theme/Theme';
+import { KeyboardProvider } from '../src/context/KeyboardContext';
+import VirtualKeyboard from '../src/components/keyboard/VirtualKeyboard';
+import { LanguageProvider } from '../src/context/LanguageContext';
+import FloatingLanguageSwitcher from '../src/components/language/FloatingLanguageSwitcher';
 
 export default function RootLayout() {
     const router = useRouter();
@@ -31,9 +35,15 @@ export default function RootLayout() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-            </Stack>
+            <LanguageProvider>
+                <KeyboardProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="index" />
+                    </Stack>
+                    <VirtualKeyboard />
+                    <FloatingLanguageSwitcher />
+                </KeyboardProvider>
+            </LanguageProvider>
         </ThemeProvider>
     );
 }

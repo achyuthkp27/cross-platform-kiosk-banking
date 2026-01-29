@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, TextField, MenuItem, Stack, Grid, FormControl, InputLabel, Select, CircularProgress } from '@mui/material';
+import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Stack } from '@mui/material';
+import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
+import KioskPage from '../../src/components/KioskPage';
+import WizardStepper from '../../src/components/WizardStepper';
+import ActionButtons from '../../src/components/ActionButtons';
 
 const MOCK_ACCOUNTS = [
     { id: '1', number: 'xxxx1234', type: 'Savings', balance: 50000 },
@@ -98,199 +102,207 @@ export default function FundTransferWizard() {
 
     if (step === 4) {
         return (
-            <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5' }}>
+            <KioskPage maxWidth={800}>
                 <SuccessState
                     message="Transfer Successful!"
                     subMessage={`Ref No: ${mockRefNo}`}
                     onHome={() => router.push('/dashboard')}
                 />
-            </Box>
+            </KioskPage>
         );
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', p: 3 }}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, maxWidth: 800, mx: 'auto' }}>
-                <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    Fund Transfer
-                </Typography>
+        <KioskPage maxWidth={800}>
+            <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Fund Transfer
+            </Typography>
 
-                {/* Stepper */}
-                <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-                    {[1, 2, 3].map((s) => (
-                        <Box key={s} sx={{
-                            flex: 1,
-                            height: 4,
-                            bgcolor: s <= step ? 'primary.main' : '#e0e0e0',
-                            borderRadius: 2
-                        }} />
-                    ))}
-                </Stack>
+            {/* Stepper */}
+            <WizardStepper steps={3} currentStep={step} />
 
-                <AnimatePresence mode="wait">
-                    {step === 1 && (
-                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Select Account & Beneficiary</Typography>
+            <AnimatePresence mode="wait">
+                {step === 1 && (
+                    <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Select Account & Beneficiary</Typography>
 
-                            <TextField
-                                select
-                                fullWidth
-                                label="From Account"
-                                value={form.fromAccount}
-                                onChange={(e) => setForm({ ...form, fromAccount: e.target.value })}
-                                error={!!errors.fromAccount}
-                                helperText={errors.fromAccount}
-                                sx={{ mb: 3 }}
-                            >
-                                {MOCK_ACCOUNTS.map((acc) => (
-                                    <MenuItem key={acc.id} value={acc.id}>
-                                        {acc.type} - {acc.number} (Balance: ₹{acc.balance})
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                        <KioskTextField
+                            select
+                            fullWidth
+                            label="From Account"
+                            value={form.fromAccount}
+                            onChange={(e) => setForm({ ...form, fromAccount: e.target.value })}
+                            error={!!errors.fromAccount}
+                            helperText={errors.fromAccount}
+                            sx={{ mb: 3 }}
+                        >
+                            {MOCK_ACCOUNTS.map((acc) => (
+                                <MenuItem key={acc.id} value={acc.id}>
+                                    {acc.type} - {acc.number} (Balance: ₹{acc.balance})
+                                </MenuItem>
+                            ))}
+                        </KioskTextField>
 
-                            {!isNewBeneficiary ? (
-                                <>
-                                    <TextField
-                                        select
-                                        fullWidth
-                                        label="Select Beneficiary"
-                                        value={form.beneficiaryId}
-                                        onChange={(e) => setForm({ ...form, beneficiaryId: e.target.value })}
-                                        error={!!errors.beneficiaryId}
-                                        helperText={errors.beneficiaryId}
-                                        sx={{ mb: 2 }}
-                                    >
-                                        {MOCK_BENEFICIARIES.map((ben) => (
-                                            <MenuItem key={ben.id} value={ben.id}>
-                                                {ben.name} - {ben.account}
-                                            </MenuItem>
-                                        ))}
-                                    </TextField>
-                                    <Button onClick={() => setIsNewBeneficiary(true)}>+ Add New Beneficiary</Button>
-                                </>
-                            ) : (
-                                <Box sx={{ p: 2, border: '1px solid #ddd', borderRadius: 2 }}>
-                                    <Typography variant="subtitle2" gutterBottom>New Beneficiary Details</Typography>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12}>
-                                            <TextField
-                                                fullWidth label="Name"
-                                                value={form.newBeneficiary.name}
-                                                onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, name: e.target.value } })}
-                                                error={!!errors.name} helperText={errors.name}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <TextField
-                                                fullWidth label="Account Number"
-                                                value={form.newBeneficiary.account}
-                                                onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, account: e.target.value } })}
-                                                error={!!errors.account} helperText={errors.account}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <TextField
-                                                fullWidth label="Confirm Account"
-                                                value={form.newBeneficiary.confirmAccount}
-                                                onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, confirmAccount: e.target.value } })}
-                                                error={!!errors.confirmAccount} helperText={errors.confirmAccount}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <TextField
-                                                fullWidth label="IFSC Code"
-                                                value={form.newBeneficiary.ifsc}
-                                                onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, ifsc: e.target.value.toUpperCase() } })}
-                                                error={!!errors.ifsc} helperText={errors.ifsc}
-                                            />
-                                        </Grid>
+                        {!isNewBeneficiary ? (
+                            <>
+                                <KioskTextField
+                                    select
+                                    fullWidth
+                                    label="Select Beneficiary"
+                                    value={form.beneficiaryId}
+                                    onChange={(e) => setForm({ ...form, beneficiaryId: e.target.value })}
+                                    error={!!errors.beneficiaryId}
+                                    helperText={errors.beneficiaryId}
+                                    sx={{ mb: 2 }}
+                                >
+                                    {MOCK_BENEFICIARIES.map((ben) => (
+                                        <MenuItem key={ben.id} value={ben.id}>
+                                            {ben.name} - {ben.account}
+                                        </MenuItem>
+                                    ))}
+                                </KioskTextField>
+                                <Button
+                                    onClick={() => setIsNewBeneficiary(true)}
+                                    sx={{ fontWeight: 'bold', mb: 2 }}
+                                >
+                                    + Add New Beneficiary
+                                </Button>
+                            </>
+                        ) : (
+                            <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 3, textAlign: 'left', mb: 2 }}>
+                                <Typography variant="subtitle1" gutterBottom fontWeight="bold">New Beneficiary Details</Typography>
+                                <Grid container spacing={2}>
+                                    <Grid size={12}>
+                                        <KioskTextField
+                                            fullWidth label="Name"
+                                            value={form.newBeneficiary.name}
+                                            onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, name: e.target.value } })}
+                                            error={!!errors.name} helperText={errors.name}
+                                        />
                                     </Grid>
-                                    <Button sx={{ mt: 1 }} color="error" onClick={() => setIsNewBeneficiary(false)}>Cancel</Button>
+                                    <Grid size={6}>
+                                        <KioskTextField
+                                            fullWidth label="Account Number"
+                                            value={form.newBeneficiary.account}
+                                            keyboardType="numeric"
+                                            onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, account: e.target.value } })}
+                                            error={!!errors.account} helperText={errors.account}
+                                        />
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <KioskTextField
+                                            fullWidth label="Confirm Account"
+                                            value={form.newBeneficiary.confirmAccount}
+                                            keyboardType="numeric"
+                                            onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, confirmAccount: e.target.value } })}
+                                            error={!!errors.confirmAccount} helperText={errors.confirmAccount}
+                                        />
+                                    </Grid>
+                                    <Grid size={12}>
+                                        <KioskTextField
+                                            fullWidth label="IFSC Code"
+                                            value={form.newBeneficiary.ifsc}
+                                            onChange={(e) => setForm({ ...form, newBeneficiary: { ...form.newBeneficiary, ifsc: e.target.value.toUpperCase() } })}
+                                            error={!!errors.ifsc} helperText={errors.ifsc}
+                                        />
+                                    </Grid>
+                                </Grid>
+                                <Button sx={{ mt: 2 }} color="error" onClick={() => setIsNewBeneficiary(false)}>Cancel</Button>
+                            </Box>
+                        )}
+                    </motion.div>
+                )}
+
+                {step === 2 && (
+                    <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Enter Amount</Typography>
+
+                        <KioskTextField
+                            fullWidth
+                            label="Amount (₹)"
+                            value={form.amount}
+                            keyboardType="numeric"
+                            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                            error={!!errors.amount}
+                            helperText={errors.amount}
+                            sx={{ mb: 3 }}
+                            InputProps={{ style: { fontSize: 32, fontWeight: 'bold', textAlign: 'center' } }}
+                        />
+
+                        <KioskTextField
+                            fullWidth
+                            label="Remarks (Optional)"
+                            value={form.remarks}
+                            onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+                            multiline
+                            rows={2}
+                        />
+                    </motion.div>
+                )}
+
+                {step === 3 && (
+                    <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Review & Confirm</Typography>
+
+                        <Stack spacing={2} sx={{ mb: 4, p: 3, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 3, textAlign: 'left' }}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">From Account</Typography>
+                                <Typography variant="body1" fontWeight="bold">
+                                    {MOCK_ACCOUNTS.find(a => a.id === form.fromAccount)?.number}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">To Beneficiary</Typography>
+                                <Typography variant="body1" fontWeight="bold">{getBeneficiaryDetails()}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Amount</Typography>
+                                <Typography variant="h3" color="primary" fontWeight="bold">₹{form.amount}</Typography>
+                            </Box>
+                            {form.remarks && (
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">Remarks</Typography>
+                                    <Typography variant="body1">{form.remarks}</Typography>
                                 </Box>
                             )}
-                        </motion.div>
-                    )}
+                        </Stack>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    {step === 2 && (
-                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Enter Amount</Typography>
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Button
+                    disabled={loading}
+                    onClick={() => step === 1 ? router.push('/dashboard') : setStep(prev => prev - 1)}
+                    variant="outlined"
+                    size="large"
+                    sx={{ height: 56, flex: 1, borderRadius: 2 }}
+                >
+                    {step === 1 ? 'Cancel' : 'Back'}
+                </Button>
 
-                            <TextField
-                                fullWidth
-                                label="Amount (₹)"
-                                type="number"
-                                value={form.amount}
-                                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                error={!!errors.amount}
-                                helperText={errors.amount}
-                                sx={{ mb: 3 }}
-                                InputProps={{ style: { fontSize: 24 } }}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Remarks (Optional)"
-                                value={form.remarks}
-                                onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-                                multiline
-                                rows={2}
-                            />
-                        </motion.div>
-                    )}
-
-                    {step === 3 && (
-                        <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Review & Confirm</Typography>
-
-                            <Stack spacing={2} sx={{ mb: 4, p: 2, bgcolor: '#f9f9f9', borderRadius: 2 }}>
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary">From Account</Typography>
-                                    <Typography variant="body1">{MOCK_ACCOUNTS.find(a => a.id === form.fromAccount)?.number}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary">To Beneficiary</Typography>
-                                    <Typography variant="body1">{getBeneficiaryDetails()}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary">Amount</Typography>
-                                    <Typography variant="h4" color="primary">₹{form.amount}</Typography>
-                                </Box>
-                                {form.remarks && (
-                                    <Box>
-                                        <Typography variant="caption" color="text.secondary">Remarks</Typography>
-                                        <Typography variant="body1">{form.remarks}</Typography>
-                                    </Box>
-                                )}
-                            </Stack>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+                {step < 3 ? (
                     <Button
-                        disabled={step === 1 || loading}
-                        onClick={() => setStep(prev => prev - 1)}
-                        variant="outlined"
+                        variant="contained"
+                        size="large"
+                        onClick={handleNext}
+                        sx={{ height: 56, flex: 2, borderRadius: 2 }}
                     >
-                        Back
+                        Next
                     </Button>
-
-                    {step < 3 ? (
-                        <Button variant="contained" onClick={handleNext}>Next</Button>
-                    ) : (
-                        <Button
-                            variant="contained"
-                            color="success"
-                            size="large"
-                            onClick={handleConfirm}
-                            disabled={loading}
-                        >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Transfer'}
-                        </Button>
-                    )}
-                </Box>
-            </Paper>
-        </Box>
+                ) : (
+                    <Button
+                        variant="contained"
+                        color="success"
+                        size="large"
+                        onClick={handleConfirm}
+                        disabled={loading}
+                        sx={{ height: 56, flex: 2, borderRadius: 2 }}
+                    >
+                        {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Transfer'}
+                    </Button>
+                )}
+            </Box>
+        </KioskPage>
     );
 }

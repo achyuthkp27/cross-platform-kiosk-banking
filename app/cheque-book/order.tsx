@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, TextField, Checkbox, FormControlLabel, Fade } from '@mui/material';
+import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, Fade } from '@mui/material';
+import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
@@ -77,7 +78,7 @@ export default function ChequeBookOrder() {
             {/* Header */}
             <Paper elevation={1} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>Request Cheque Book</Typography>
-                <Button color="error" onClick={() => router.push('/dashboard')}>Cancel</Button>
+                <Button color="error" onClick={() => router.push('/dashboard')} sx={{ mr: 10 }}>Cancel</Button>
             </Paper>
 
             <Box sx={{ flexGrow: 1, p: 4, display: 'flex', justifyContent: 'center' }}>
@@ -103,7 +104,7 @@ export default function ChequeBookOrder() {
                             {activeStep === 0 && (
                                 <Grid container spacing={3}>
                                     {accounts.map((acc) => (
-                                        <Grid item xs={12} md={6} key={acc.id}>
+                                        <Grid size={{ xs: 12, md: 6 }} key={acc.id}>
                                             <Card
                                                 onClick={() => setSelectedAccount(acc.id)}
                                                 sx={{
@@ -132,7 +133,7 @@ export default function ChequeBookOrder() {
                             {activeStep === 1 && (
                                 <Grid container spacing={3} justifyContent="center">
                                     {leafOptions.map((leaves) => (
-                                        <Grid item xs={12} md={4} key={leaves}>
+                                        <Grid size={{ xs: 12, md: 4 }} key={leaves}>
                                             <Card
                                                 onClick={() => setSelectedLeaves(leaves)}
                                                 sx={{
@@ -163,38 +164,39 @@ export default function ChequeBookOrder() {
 
                                         {isEditingAddress ? (
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                <TextField
+                                                <KioskTextField
                                                     label="Line 1"
                                                     value={deliveryAddress.line1}
                                                     onChange={(e) => setDeliveryAddress({ ...deliveryAddress, line1: e.target.value })}
                                                     fullWidth
                                                     size="small"
-                                                    bgcolor="white"
+                                                    sx={{ bgcolor: 'white' }}
                                                 />
-                                                <TextField
+                                                <KioskTextField
                                                     label="Line 2"
                                                     value={deliveryAddress.line2}
                                                     onChange={(e) => setDeliveryAddress({ ...deliveryAddress, line2: e.target.value })}
                                                     fullWidth
                                                     size="small"
-                                                    bgcolor="white"
+                                                    sx={{ bgcolor: 'white' }}
                                                 />
                                                 <Box sx={{ display: 'flex', gap: 2 }}>
-                                                    <TextField
+                                                    <KioskTextField
                                                         label="City"
                                                         value={deliveryAddress.city}
                                                         onChange={(e) => setDeliveryAddress({ ...deliveryAddress, city: e.target.value })}
                                                         fullWidth
                                                         size="small"
-                                                        bgcolor="white"
+                                                        sx={{ bgcolor: 'white' }}
                                                     />
-                                                    <TextField
+                                                    <KioskTextField
                                                         label="PIN"
                                                         value={deliveryAddress.pin}
+                                                        keyboardType="numeric"
                                                         onChange={(e) => setDeliveryAddress({ ...deliveryAddress, pin: e.target.value })}
                                                         fullWidth
                                                         size="small"
-                                                        bgcolor="white"
+                                                        sx={{ bgcolor: 'white' }}
                                                     />
                                                 </Box>
                                             </Box>
@@ -224,19 +226,19 @@ export default function ChequeBookOrder() {
                                     <Typography variant="h6" gutterBottom>Review Order</Typography>
                                     <Paper variant="outlined" sx={{ p: 3 }}>
                                         <Grid container spacing={2}>
-                                            <Grid item xs={6}><Typography color="text.secondary">Account</Typography></Grid>
-                                            <Grid item xs={6}><Typography fontWeight="bold">{accounts.find(a => a.id === selectedAccount)?.number}</Typography></Grid>
+                                            <Grid size={6}><Typography color="text.secondary">Account</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold">{accounts.find(a => a.id === selectedAccount)?.number}</Typography></Grid>
 
-                                            <Grid item xs={6}><Typography color="text.secondary">Cheque Book Size</Typography></Grid>
-                                            <Grid item xs={6}><Typography fontWeight="bold">{selectedLeaves} Leaves</Typography></Grid>
+                                            <Grid size={6}><Typography color="text.secondary">Cheque Book Size</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold">{selectedLeaves} Leaves</Typography></Grid>
 
-                                            <Grid item xs={6}><Typography color="text.secondary">Delivery To</Typography></Grid>
-                                            <Grid item xs={6}><Typography fontWeight="bold">{deliveryAddress.pin}</Typography></Grid>
+                                            <Grid size={6}><Typography color="text.secondary">Delivery To</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold">{deliveryAddress.pin}</Typography></Grid>
 
-                                            <Grid item xs={12}><Divider sx={{ my: 1 }} /></Grid>
+                                            <Grid size={12}><Divider sx={{ my: 1 }} /></Grid>
 
-                                            <Grid item xs={6}><Typography variant="h6">Total Charges</Typography></Grid>
-                                            <Grid item xs={6}><Typography variant="h6" color="primary">Free</Typography></Grid>
+                                            <Grid size={6}><Typography variant="h6">Total Charges</Typography></Grid>
+                                            <Grid size={6}><Typography variant="h6" color="primary">Free</Typography></Grid>
                                         </Grid>
                                     </Paper>
                                     <Box sx={{ mt: 3 }}>

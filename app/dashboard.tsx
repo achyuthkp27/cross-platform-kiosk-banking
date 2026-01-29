@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Paper, AppBar, Toolbar, IconButton, Container } from '@mui/material';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../src/context/LanguageContext';
 // Icons would normally be imported from @mui/icons-material
 
 export default function Dashboard() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [sessionTime, setSessionTime] = useState(300); // 5 minutes
 
     useEffect(() => {
@@ -27,6 +29,13 @@ export default function Dashboard() {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
+    const menuItems = [
+        { id: 1, title: t('dashboard.accounts'), path: '/account-statement' },
+        { id: 2, title: t('dashboard.cheque_book'), path: '/cheque-book' },
+        { id: 3, title: t('dashboard.fund_transfer'), path: '/fund-transfer' },
+        { id: 4, title: t('dashboard.bill_payment'), path: '/bill-payment' }
+    ];
+
     return (
         <Box sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#F0F2F5' }}>
             <AppBar position="static" color="transparent" elevation={0} sx={{ bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}>
@@ -35,22 +44,17 @@ export default function Dashboard() {
                         Kiosk Banking
                     </Typography>
                     <Typography variant="body1" sx={{ mr: 2, color: 'text.secondary' }}>
-                        Welcome, John Doe
+                        {t('dashboard.welcome_user')}
                     </Typography>
-                    <Typography variant="body2" color="error" sx={{ fontWeight: 'bold' }}>
-                        Session: {formatTime(sessionTime)}
+                    <Typography variant="body2" color="error" sx={{ fontWeight: 'bold', mr: 10 }}>
+                        {t('auth.session_expiry')}: {formatTime(sessionTime)}
                     </Typography>
                 </Toolbar>
             </AppBar>
 
             <Container maxWidth="xl" sx={{ mt: 4, flexGrow: 1 }}>
                 <Grid container spacing={4} sx={{ height: '100%' }}>
-                    {[
-                        { id: 1, title: 'Account Services', path: '/account-statement' },
-                        { id: 2, title: 'Cheque Book', path: '/cheque-book' },
-                        { id: 3, title: 'Fund Transfer', path: '/fund-transfer' },
-                        { id: 4, title: 'Bill Payments', path: '/bill-payment' }
-                    ].map((item) => (
+                    {menuItems.map((item) => (
                         <Grid size={{ xs: 12, md: 4 }} key={item.id}>
                             <Paper
                                 elevation={2}

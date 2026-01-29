@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, TextField, MenuItem, Stack, Grid, CircularProgress, Card, CardContent } from '@mui/material';
+import { Box, Typography, Button, MenuItem, Grid, CircularProgress, Card, CardContent } from '@mui/material';
+import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
 import { ElectricBolt, WaterDrop, Smartphone, Wifi, LocalGasStation } from '@mui/icons-material';
+import KioskPage from '../../src/components/KioskPage';
+import WizardStepper from '../../src/components/WizardStepper';
+import ActionButtons from '../../src/components/ActionButtons';
 
 const CATEGORIES = [
     { id: 'electricity', name: 'Electricity', icon: <ElectricBolt fontSize="large" /> },
@@ -66,150 +70,173 @@ export default function BillPaymentWizard() {
 
     if (step === 4) {
         return (
-            <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5' }}>
+            <KioskPage maxWidth={900}>
                 <SuccessState
                     message="Bill Payment Successful!"
                     subMessage={`Transaction ID: ${mockTxnId}`}
                     onHome={() => router.push('/dashboard')}
                 />
-            </Box>
+            </KioskPage>
         );
     }
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', p: 3 }}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 4, maxWidth: 900, mx: 'auto' }}>
-                <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                    Bill Payments
-                </Typography>
+        <KioskPage maxWidth={900}>
+            <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Bill Payments
+            </Typography>
 
-                {/* Stepper */}
-                <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
-                    {[1, 2, 3].map((s) => (
-                        <Box key={s} sx={{
-                            flex: 1,
-                            height: 4,
-                            bgcolor: s <= step ? 'primary.main' : '#e0e0e0',
-                            borderRadius: 2
-                        }} />
-                    ))}
-                </Stack>
+            {/* Stepper */}
+            <WizardStepper steps={3} currentStep={step} />
 
-                <AnimatePresence mode="wait">
-                    {step === 1 && (
-                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Select Category</Typography>
-                            <Grid container spacing={3}>
-                                {CATEGORIES.map((cat) => (
-                                    <Grid item xs={6} md={4} key={cat.id}>
-                                        <Card
-                                            sx={{
-                                                cursor: 'pointer',
-                                                textAlign: 'center',
-                                                p: 2,
-                                                '&:hover': { bgcolor: 'action.hover', transform: 'scale(1.02)' },
-                                                transition: 'all 0.2s'
-                                            }}
-                                            onClick={() => handleCategorySelect(cat.id)}
-                                        >
-                                            <CardContent>
-                                                <Box sx={{ color: 'primary.main', mb: 1 }}>{cat.icon}</Box>
-                                                <Typography variant="h6">{cat.name}</Typography>
-                                            </CardContent>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </motion.div>
-                    )}
+            <AnimatePresence mode="wait">
+                {step === 1 && (
+                    <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Select Category</Typography>
+                        <Grid container spacing={3}>
+                            {CATEGORIES.map((cat) => (
+                                <Grid size={{ xs: 6, md: 4 }} key={cat.id}>
+                                    <Card
+                                        sx={{
+                                            cursor: 'pointer',
+                                            textAlign: 'center',
+                                            p: 2,
+                                            borderRadius: 3,
+                                            border: '2px solid transparent',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(0,0,0,0.02)',
+                                                transform: 'translateY(-4px)',
+                                                borderColor: 'primary.main'
+                                            },
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onClick={() => handleCategorySelect(cat.id)}
+                                    >
+                                        <CardContent>
+                                            <Box sx={{ color: 'primary.main', mb: 2 }}>{cat.icon}</Box>
+                                            <Typography variant="h6" fontWeight="bold">{cat.name}</Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            ))}
+                        </Grid>
 
-                    {step === 2 && (
-                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Enter Bill Details</Typography>
-
-                            <TextField
-                                select
-                                fullWidth
-                                label="Select Biller"
-                                value={biller}
-                                onChange={(e) => { setBiller(e.target.value); setError(''); }}
-                                sx={{ mb: 3 }}
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                            <Button
+                                variant="outlined"
+                                onClick={() => router.push('/dashboard')}
+                                size="large"
+                                sx={{ height: 56, minWidth: 200, borderRadius: 2 }}
                             >
-                                {BILLERS[category as keyof typeof BILLERS]?.map((b) => (
-                                    <MenuItem key={b} value={b}>{b}</MenuItem>
-                                ))}
-                            </TextField>
+                                Cancel
+                            </Button>
+                        </Box>
+                    </motion.div>
+                )}
 
-                            <TextField
-                                fullWidth
-                                label="Consumer Number / ID"
-                                value={consumerNo}
-                                onChange={(e) => { setConsumerNo(e.target.value); setError(''); }}
-                                error={!!error}
-                                helperText={error}
-                                sx={{ mb: 4 }}
-                            />
+                {step === 2 && (
+                    <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Enter Bill Details</Typography>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Button onClick={() => setStep(1)} variant="outlined">Back</Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={fetchBill}
-                                    disabled={loading || !biller || !consumerNo}
-                                >
-                                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Fetch Bill'}
-                                </Button>
-                            </Box>
-                        </motion.div>
-                    )}
+                        <KioskTextField
+                            select
+                            fullWidth
+                            label="Select Biller"
+                            value={biller}
+                            onChange={(e) => { setBiller(e.target.value); setError(''); }}
+                            sx={{ mb: 3 }}
+                        >
+                            {BILLERS[category as keyof typeof BILLERS]?.map((b) => (
+                                <MenuItem key={b} value={b}>{b}</MenuItem>
+                            ))}
+                        </KioskTextField>
 
-                    {step === 3 && billDetails && (
-                        <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            <Typography variant="h6" gutterBottom>Confirm Payment</Typography>
+                        <KioskTextField
+                            fullWidth
+                            label="Consumer Number / ID"
+                            value={consumerNo}
+                            onChange={(e) => { setConsumerNo(e.target.value); setError(''); }}
+                            error={!!error}
+                            helperText={error}
+                            sx={{ mb: 4 }}
+                        />
 
-                            <Card sx={{ bgcolor: '#f0f7ff', mb: 4, border: '1px solid #cce5ff' }}>
-                                <CardContent>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={6}>
-                                            <Typography variant="caption" color="text.secondary">Biller</Typography>
-                                            <Typography variant="body1" fontWeight="bold">{biller}</Typography>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="caption" color="text.secondary">Consumer No</Typography>
-                                            <Typography variant="body1" fontWeight="bold">{consumerNo}</Typography>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="caption" color="text.secondary">Customer Name</Typography>
-                                            <Typography variant="body1" fontWeight="bold">{billDetails.name}</Typography>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="caption" color="text.secondary">Due Date</Typography>
-                                            <Typography variant="body1" fontWeight="bold">{billDetails.dueDate}</Typography>
-                                        </Grid>
-                                        <Grid item xs={12}>
-                                            <Typography variant="caption" color="text.secondary">Bill Amount</Typography>
-                                            <Typography variant="h3" color="primary.main" fontWeight="bold">₹{billDetails.amount}</Typography>
-                                        </Grid>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            <Button
+                                onClick={() => setStep(1)}
+                                variant="outlined"
+                                size="large"
+                                sx={{ height: 56, flex: 1, borderRadius: 2 }}
+                            >
+                                Back
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={fetchBill}
+                                disabled={loading || !biller || !consumerNo}
+                                size="large"
+                                sx={{ height: 56, flex: 2, borderRadius: 2 }}
+                            >
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Fetch Bill'}
+                            </Button>
+                        </Box>
+                    </motion.div>
+                )}
+
+                {step === 3 && billDetails && (
+                    <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <Typography variant="h6" gutterBottom align="left">Confirm Payment</Typography>
+
+                        <Card sx={{ bgcolor: 'rgba(25, 118, 210, 0.04)', mb: 4, borderRadius: 3, border: '1px solid rgba(25, 118, 210, 0.1)' }}>
+                            <CardContent sx={{ textAlign: 'left' }}>
+                                <Grid container spacing={3}>
+                                    <Grid size={6}>
+                                        <Typography variant="caption" color="text.secondary">Biller</Typography>
+                                        <Typography variant="body1" fontWeight="bold">{biller}</Typography>
                                     </Grid>
-                                </CardContent>
-                            </Card>
+                                    <Grid size={6}>
+                                        <Typography variant="caption" color="text.secondary">Consumer No</Typography>
+                                        <Typography variant="body1" fontWeight="bold">{consumerNo}</Typography>
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <Typography variant="caption" color="text.secondary">Customer Name</Typography>
+                                        <Typography variant="body1" fontWeight="bold">{billDetails.name}</Typography>
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <Typography variant="caption" color="text.secondary">Due Date</Typography>
+                                        <Typography variant="body1" fontWeight="bold">{billDetails.dueDate}</Typography>
+                                    </Grid>
+                                    <Grid size={12}>
+                                        <Typography variant="caption" color="text.secondary">Bill Amount</Typography>
+                                        <Typography variant="h3" color="primary" fontWeight="bold" sx={{ mt: 1 }}>₹{billDetails.amount}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </CardContent>
+                        </Card>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Button onClick={() => setStep(2)} variant="outlined">Back</Button>
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    size="large"
-                                    onClick={handleConfirm}
-                                    disabled={loading}
-                                >
-                                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Pay Now'}
-                                </Button>
-                            </Box>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </Paper>
-        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            <Button
+                                onClick={() => setStep(2)}
+                                variant="outlined"
+                                size="large"
+                                sx={{ height: 56, flex: 1, borderRadius: 2 }}
+                            >
+                                Back
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                size="large"
+                                onClick={handleConfirm}
+                                disabled={loading}
+                                sx={{ height: 56, flex: 2, borderRadius: 2 }}
+                            >
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Pay Now'}
+                            </Button>
+                        </Box>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </KioskPage>
     );
 }

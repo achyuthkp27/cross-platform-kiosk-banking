@@ -81,7 +81,11 @@ export default function AccountStatementView() {
                         Welcome back, {MOCK_DATA.accountName}
                     </Typography>
                 </Box>
-                <Button variant="outlined" onClick={() => router.replace('/dashboard')} sx={{ borderRadius: 2 }}>
+                <Button
+                    variant="outlined"
+                    onClick={() => router.replace('/dashboard')}
+                    sx={{ borderRadius: 2, mr: 10 }}
+                >
                     Return to Dashboard
                 </Button>
             </Box>
