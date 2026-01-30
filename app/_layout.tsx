@@ -29,7 +29,7 @@ export default function RootLayout() {
             }, 50);
             return () => clearTimeout(timer);
         }
-    }, [rootNavigationState?.key]);
+    }, [rootNavigationState?.key, pathname, router]);
 
     return (
         <ErrorBoundary>

@@ -20,7 +20,7 @@ export default function BillPaymentWizard() {
 
     const {
         step, setStep, loading, setLoading, category, handleCategorySelect,
-        biller, setBiller, consumerNo, setConsumerNo, billDetails, setBillDetails,
+        biller, setBiller, consumerNo, setConsumerNo, billDetails,
         error, setError, mockTxnId, setMockTxnId, fetchBill
     } = useBillPayment();
 

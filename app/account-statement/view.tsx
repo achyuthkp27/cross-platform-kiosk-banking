@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, CircularProgress, alpha, useTheme, IconButton, Modal, Stack, Divider } from '@mui/material';
 import { useRouter } from 'expo-router';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import DownloadIcon from '@mui/icons-material/Download';
 import PrintIcon from '@mui/icons-material/Print';
 import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -55,7 +54,7 @@ const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
     }, [end, duration]);
 
     return (
-        <span>{count.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <Box component="span">{count.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Box>
     );
 };
 
@@ -63,7 +62,7 @@ export default function AccountStatementView() {
     const router = useRouter();
     const theme = useTheme();
     const { mode } = useThemeContext();
-    const { showSuccess, showInfo } = useToast();
+    const { showInfo } = useToast();
     const isDark = mode === 'dark';
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -74,17 +73,7 @@ export default function AccountStatementView() {
         ? MOCK_DATA.transactions
         : MOCK_DATA.transactions.filter(t => t.category === selectedCategory);
 
-    // Export handler
-    const handleExport = () => {
-        const data = filteredTransactions.map(t => `${t.date},${t.desc},${t.category},${t.type},${t.amount}`).join('\n');
-        const blob = new Blob([`Date,Description,Category,Type,Amount\n${data}`], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'transactions.csv';
-        a.click();
-        showSuccess('Statement exported as CSV');
-    };
+
 
     // Print handler
     const handlePrint = () => {
@@ -319,17 +308,17 @@ export default function AccountStatementView() {
                                     </TableHead>
                                     <TableBody>
                                         {filteredTransactions.map((row, index) => (
-                                            <motion.tr
+                                            <TableRow
+                                                component={motion.tr}
                                                 key={row.id}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.2 + index * 0.05 }}
                                                 onClick={() => setSelectedTransaction(row)}
-                                                style={{
-                                                    display: 'table-row',
+                                                sx={{
                                                     cursor: 'pointer',
+                                                    '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }
                                                 }}
-                                                whileHover={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
                                             >
                                                 <TableCell sx={{
                                                     fontFamily: '"SF Mono", monospace',
@@ -397,7 +386,7 @@ export default function AccountStatementView() {
                                                 >
                                                     {row.type === 'DEBIT' ? '-' : '+'}${row.amount.toFixed(2)}
                                                 </TableCell>
-                                            </motion.tr>
+                                            </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
@@ -509,10 +498,7 @@ export default function AccountStatementView() {
                                     variant="contained"
                                     startIcon={<PrintIcon />}
                                     sx={{ mt: 4, borderRadius: 3, py: 1.5 }}
-                                    onClick={() => {
-                                        window.print();
-                                        showInfo('Printing receipt...');
-                                    }}
+                                    onClick={handlePrint}
                                 >
                                     Print Receipt
                                 </Button>

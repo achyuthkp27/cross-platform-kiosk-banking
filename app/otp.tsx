@@ -13,7 +13,7 @@ export default function OTPScreen() {
     const { t } = useLanguage();
     const { addLog } = useAudit();
 
-    const handleVerify = (otp: string) => {
+    const handleVerify = (_otp: string) => {
         // Navigate to dashboard after successful verification
         addLog('User Login Success', 'User_1234');
         router.push('/dashboard');

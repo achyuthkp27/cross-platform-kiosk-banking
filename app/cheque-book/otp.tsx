@@ -12,7 +12,7 @@ export default function ChequeBookOTP() {
     const { userId } = useLocalSearchParams();
     const { t } = useLanguage();
 
-    const handleVerify = (otp: string) => {
+    const handleVerify = (_otp: string) => {
         // Navigate to order page after successful verification
         router.replace('/cheque-book/order');
     };

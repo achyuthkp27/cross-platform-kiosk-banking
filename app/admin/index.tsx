@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Paper, TextField, Button, InputAdornment, IconButton, useTheme } from '@mui/material';
+import { Box, Typography, Paper, TextField, Button, InputAdornment, IconButton, useTheme, alpha } from '@mui/material';
 import { useRouter } from 'expo-router';
 import { motion } from 'framer-motion';
 import Visibility from '@mui/icons-material/Visibility';
@@ -138,5 +138,4 @@ export default function AdminLogin() {
     );
 }
 
-// Helper for alpha color
-import { alpha } from '@mui/material';
+

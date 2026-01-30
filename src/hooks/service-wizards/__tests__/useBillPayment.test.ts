@@ -56,7 +56,7 @@ describe('useBillPayment', () => {
 
         expect(result.current.loading).toBe(false);
         expect(result.current.billDetails).not.toBeNull();
-        expect(result.current.billDetails.name).toBe('John Doe');
+        expect(result.current.billDetails!.name).toBe('John Doe');
         expect(result.current.step).toBe(3);
     });
 });

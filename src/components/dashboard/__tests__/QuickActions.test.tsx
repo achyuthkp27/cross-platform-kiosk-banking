@@ -5,10 +5,14 @@ import '@testing-library/jest-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 
+// Mock icons
+jest.mock('@mui/icons-material/Home', () => () => <div data-testid="mock-icon" />);
+jest.mock('@mui/icons-material/Settings', () => () => <div data-testid="mock-icon" />);
+
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) => <div {...props}>{children}</div>,
+        div: ({ children, whileHover, whileTap, initial, animate, exit, variants, transition, ...props }: any) => <div {...props}>{children}</div>,
     },
 }));
 

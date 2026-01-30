@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, Fade, useTheme } from '@mui/material';
+import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useThemeContext } from '../../src/context/ThemeContext';
 
 const steps = ['Select Account', 'Cheque Leaves', 'Delivery Address', 'Review'];
 
 export default function ChequeBookOrder() {
     const router = useRouter();
-    const theme = useTheme();
+
     const { mode } = useThemeContext();
     const isDark = mode === 'dark';
     const [activeStep, setActiveStep] = useState(0);
@@ -20,6 +19,8 @@ export default function ChequeBookOrder() {
     const [selectedLeaves, setSelectedLeaves] = useState<number | null>(null);
     const [confirmed, setConfirmed] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+
+    const [refNo] = useState(() => `CB${Math.floor(Math.random() * 1000000)}`);
 
     // Mock Data
     const accounts = [
@@ -80,7 +81,7 @@ export default function ChequeBookOrder() {
                 }}>
                     <SuccessState
                         message="Order Placed Successfully"
-                        subMessage={`Ref No: CB${Math.floor(Math.random() * 1000000)}\nExpected Delivery: 3-5 Business Days`}
+                        subMessage={`Ref No: ${refNo}\nExpected Delivery: 3-5 Business Days`}
                     />
                     <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
                         <Button fullWidth variant="outlined" size="large" onClick={() => { }}>Print Receipt</Button>

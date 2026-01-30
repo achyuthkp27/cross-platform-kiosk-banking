@@ -12,7 +12,7 @@ export default function AccountStatementOTP() {
     const { userId } = useLocalSearchParams();
     const { t } = useLanguage();
 
-    const handleVerify = (otp: string) => {
+    const handleVerify = (_otp: string) => {
         // Navigate to statement view after successful verification
         router.replace('/account-statement/view');
     };

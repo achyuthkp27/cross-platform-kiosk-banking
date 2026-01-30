@@ -1,10 +1,9 @@
 import SearchIcon from '@mui/icons-material/Search';
 import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState, useMemo } from 'react';
-import { Box, Typography, Paper, Grid, Tabs, Tab, Switch, FormControlLabel, Select, MenuItem, Button, List, ListItem, ListItemText, Divider, useTheme, TextField } from '@mui/material';
+import { Box, Typography, Paper, Tabs, Tab, Switch, FormControlLabel, Select, MenuItem, Button, List, ListItem, ListItemText, Divider, TextField } from '@mui/material';
 import { useRouter } from 'expo-router';
 import { motion } from 'framer-motion';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import SecurityIcon from '@mui/icons-material/Security';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -14,10 +13,10 @@ import { useLanguage } from '../../src/context/LanguageContext';
 import { useToast } from '../../src/context/ToastContext';
 import { useSession } from '../../src/context/SessionContext';
 import { useAudit } from '../../src/context/AuditContext';
+import { Language } from '../../src/i18n/translations';
 
 export default function AdminDashboard() {
     const router = useRouter();
-    const theme = useTheme();
     const { mode, toggleTheme } = useThemeContext();
     const { t, language, setLanguage } = useLanguage();
     const { showSuccess, showInfo } = useToast();
@@ -158,7 +157,7 @@ export default function AdminDashboard() {
                                     <Select
                                         size="small"
                                         value={language}
-                                        onChange={(e) => setLanguage(e.target.value as any)}
+                                        onChange={(e) => setLanguage(e.target.value as Language)}
                                         sx={{ minWidth: 120 }}
                                     >
                                         <MenuItem value="en">English</MenuItem>
@@ -244,7 +243,7 @@ export default function AdminDashboard() {
                                         ))
                                     ) : (
                                         <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
-                                            No logs found matching "{logSearch}"
+                                            No logs found matching &quot;{logSearch}&quot;
                                         </Typography>
                                     )}
                                 </List>

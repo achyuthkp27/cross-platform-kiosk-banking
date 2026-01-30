@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, useTheme } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '../src/context/LanguageContext';
 import { motion } from 'framer-motion';

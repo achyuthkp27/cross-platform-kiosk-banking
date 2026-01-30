@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, IconButton, alpha, useTheme } from '@mui/material';
+import { Box, Typography, Button, alpha } from '@mui/material';
 import { useRouter } from 'expo-router';
 import LanguageSelector from '../src/components/language/LanguageSelector';
 import { useLanguage } from '../src/context/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import ThemeToggle from '../src/components/theme/ThemeToggle';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeContext } from '../src/context/ThemeContext';
@@ -76,7 +76,6 @@ const FloatingOrb = ({
 export default function LandingScreen() {
     const router = useRouter();
     const { t } = useLanguage();
-    const theme = useTheme();
     const { mode } = useThemeContext();
     const [isHovered, setIsHovered] = useState(false);
 
