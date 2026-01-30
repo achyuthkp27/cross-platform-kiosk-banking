@@ -18,17 +18,16 @@ export default function RootLayout() {
     const pathname = usePathname();
 
     useEffect(() => {
-        // Ensure navigation is ready before redirecting
-        // We redirect to '/' by default to ensure kiosk always starts fresh,
-        // BUT we must allow '/admin' for manual maintenance access.
-        if (rootNavigationState?.key) {
-            const timer = setTimeout(() => {
-                if (pathname !== '/' && !pathname.startsWith('/admin')) {
-                    router.replace('/');
-                }
-            }, 50);
-            return () => clearTimeout(timer);
-        }
+        // Logic disabled: Was preventing navigation to /login.
+        // Previously redirected to '/' if path was not '/' or '/admin'.
+        // if (rootNavigationState?.key) {
+        //     const timer = setTimeout(() => {
+        //         if (pathname !== '/' && !pathname.startsWith('/admin')) {
+        //             router.replace('/');
+        //         }
+        //     }, 50);
+        //     return () => clearTimeout(timer);
+        // }
     }, [rootNavigationState?.key, pathname, router]);
 
     return (

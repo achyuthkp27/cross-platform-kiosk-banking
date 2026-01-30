@@ -3,6 +3,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 
 export const useDashboardData = () => {
     const { t } = useLanguage();
@@ -11,7 +12,8 @@ export const useDashboardData = () => {
         { id: 1, title: t('dashboard.accounts'), path: '/account-statement', color: '#3B82F6', icon: AccountBalanceWalletIcon },
         { id: 2, title: t('dashboard.cheque_book'), path: '/cheque-book', color: '#8B5CF6', icon: MenuBookIcon },
         { id: 3, title: t('dashboard.fund_transfer'), path: '/fund-transfer', color: '#10B981', icon: SwapHorizIcon },
-        { id: 4, title: t('dashboard.bill_payment'), path: '/bill-payment', color: '#F59E0B', icon: ReceiptLongIcon }
+        { id: 4, title: t('dashboard.bill_payment'), path: '/bill-payment', color: '#F59E0B', icon: ReceiptLongIcon },
+        { id: 5, title: 'Card Services', path: '/card-services', color: '#EC4899', icon: CreditCardIcon }
     ];
 
     // Mock account data
