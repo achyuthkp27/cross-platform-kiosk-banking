@@ -4,7 +4,11 @@ module.exports = {
     roots: ['<rootDir>/src'],
     testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.tsx?$': ['ts-jest', {
+            tsconfig: {
+                jsx: 'react-jsx',
+            },
+        }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {

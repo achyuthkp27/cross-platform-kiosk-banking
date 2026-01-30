@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+require('@testing-library/jest-dom');
 
 // Mock expo-router
 jest.mock('expo-router', () => ({
@@ -12,13 +12,16 @@ jest.mock('expo-router', () => ({
 }));
 
 // Mock framer-motion
-jest.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-        span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-    },
-    AnimatePresence: ({ children }: any) => children,
-}));
+jest.mock('framer-motion', () => {
+    const React = require('react');
+    return {
+        motion: {
+            div: ({ children, ...props }) => React.createElement('div', props, children),
+            span: ({ children, ...props }) => React.createElement('span', props, children),
+        },
+        AnimatePresence: ({ children }) => children,
+    };
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

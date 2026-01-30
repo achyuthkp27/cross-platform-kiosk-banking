@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material';
 import ActionButtons from '../ActionButtons';
 
@@ -112,5 +113,23 @@ describe('ActionButtons', () => {
         );
 
         expect(screen.getByRole('button', { name: 'Submit' })).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('removes animation wrappers from tab order', () => {
+        renderWithTheme(
+            <ActionButtons
+                onPrimary={mockOnPrimary}
+                onSecondary={mockOnSecondary}
+                primaryText="Submit"
+                secondaryText="Cancel"
+            />
+        );
+
+        const primaryButton = screen.getByRole('button', { name: 'Submit' });
+        const secondaryButton = screen.getByRole('button', { name: 'Cancel' });
+
+        // The parent of the button is the motion.div
+        expect(primaryButton.parentElement).toHaveAttribute('tabIndex', '-1');
+        expect(secondaryButton.parentElement).toHaveAttribute('tabIndex', '-1');
     });
 });

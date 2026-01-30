@@ -114,6 +114,7 @@ export const translations = {
             success_login: 'Admin access granted',
             error_pin: 'Invalid Admin PIN',
             logged_out: 'Logged out of Admin Console',
+            search_logs: 'Search logs...',
         },
         errors: {
             invalid_otp: 'Invalid OTP. Please try again.',
@@ -235,6 +236,7 @@ export const translations = {
             success_login: 'Acceso concedido',
             error_pin: 'PIN inválido',
             logged_out: 'Sesión cerrada',
+            search_logs: 'Buscar registros...',
         },
         errors: {
             invalid_otp: 'OTP inválido. Por favor, inténtelo de nuevo.',
@@ -356,6 +358,7 @@ export const translations = {
             success_login: 'Toegang verleend',
             error_pin: 'Ongeldige PIN',
             logged_out: 'Uitgelogd bij beheerdersconsole',
+            search_logs: 'Logboeken zoeken...',
         },
         errors: {
             invalid_otp: 'Ongeldige OTP. Probeer het opnieuw.',

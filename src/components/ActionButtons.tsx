@@ -56,6 +56,7 @@ export default function ActionButtons({
                     whileHover={!secondaryDisabled ? "hover" : "rest"}
                     whileTap={!secondaryDisabled ? "pressed" : "rest"}
                     style={{ flex: fullWidth ? 1 : 'none', width: fullWidth ? '100%' : 'auto' }}
+                    tabIndex={-1}
                 >
                     <Button
                         variant="outlined"
@@ -98,6 +99,7 @@ export default function ActionButtons({
                 whileHover={!primaryDisabled ? "hover" : "rest"}
                 whileTap={!primaryDisabled ? "pressed" : "rest"}
                 style={{ flex: fullWidth ? 2 : 'none', width: fullWidth ? '100%' : 'auto' }}
+                tabIndex={-1}
             >
                 <Button
                     variant="contained"
