@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Fab, Menu, MenuItem, Box, Typography, Fade } from '@mui/material';
-import TranslateIcon from '@mui/icons-material/Translate';
+import { Fab, Menu, MenuItem, Typography, Fade } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import { Language } from '../../i18n/translations';
 import { usePathname } from 'expo-router';

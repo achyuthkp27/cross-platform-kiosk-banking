@@ -1,4 +1,4 @@
-import { createTheme, alpha, ThemeOptions } from '@mui/material/styles';
+import { createTheme, alpha } from '@mui/material/styles';
 
 // Premium Banking Kiosk Theme
 // Designed for next-gen self-service banking terminals

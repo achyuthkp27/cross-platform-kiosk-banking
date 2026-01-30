@@ -1,11 +1,12 @@
 import React from 'react';
 import { Box, Typography, Button, Grid, Card, CardContent, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
+import { BillDetails } from '../../../hooks/service-wizards/useBillPayment';
 
 interface BillReviewProps {
     biller: string;
     consumerNo: string;
-    billDetails: any;
+    billDetails: BillDetails;
     isDark: boolean;
     onBack: () => void;
     onConfirm: () => void;

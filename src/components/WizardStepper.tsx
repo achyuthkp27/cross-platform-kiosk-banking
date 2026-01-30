@@ -24,7 +24,6 @@ export default function WizardStepper({ steps, currentStep, labels }: WizardStep
                     const stepNumber = index + 1;
                     const isCompleted = currentStep > stepNumber;
                     const isActive = currentStep === stepNumber;
-                    const isUpcoming = currentStep < stepNumber;
 
                     return (
                         <React.Fragment key={index}>

@@ -1,14 +1,11 @@
 import React from 'react';
 import { Modal, Box, Typography, Button, CircularProgress, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useSession } from '../context/SessionContext';
-import { useLanguage } from '../context/LanguageContext';
 
 export const SessionTimeoutModal = () => {
     const theme = useTheme();
-    const { t } = useLanguage();
     const { showWarning, timeLeft, resetSession, endSession } = useSession();
 
     if (!showWarning) return null;

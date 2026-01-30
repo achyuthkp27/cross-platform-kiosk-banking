@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography, Alert } from '@mui/material';
+import { Typography } from '@mui/material';
 import { useLanguage } from '../context/LanguageContext';
 import KioskPage from './KioskPage';
 import KioskTextField from './KioskTextField';

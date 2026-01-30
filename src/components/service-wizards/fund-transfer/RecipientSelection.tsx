@@ -2,11 +2,11 @@ import React from 'react';
 import { Box, Typography, Button, MenuItem, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
 import KioskTextField from '../../KioskTextField';
-import { MOCK_ACCOUNTS, MOCK_BENEFICIARIES } from '../../../hooks/service-wizards/useFundTransfer';
+import { MOCK_ACCOUNTS, MOCK_BENEFICIARIES, FormState } from '../../../hooks/service-wizards/useFundTransfer';
 
 interface RecipientSelectionProps {
-    form: any;
-    setForm: (form: any) => void;
+    form: FormState;
+    setForm: (form: FormState) => void;
     errors: Record<string, string>;
     isNewBeneficiary: boolean;
     setIsNewBeneficiary: (value: boolean) => void;

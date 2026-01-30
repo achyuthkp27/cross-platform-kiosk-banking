@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { translations, Language } from '../i18n/translations';
 
 // Helper type to access nested keys like 'auth.login_title'
@@ -31,21 +31,20 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>('en');
-
-    useEffect(() => {
-        // Load language from local storage on mount
+    // Lazy initialization: read from localStorage on first render
+    const [language, setLanguageState] = useState<Language>(() => {
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
                 const storedLang = localStorage.getItem('kiosk_language') as Language;
                 if (storedLang && ['en', 'es', 'nl'].includes(storedLang)) {
-                    setLanguageState(storedLang);
+                    return storedLang;
                 }
             }
         } catch (e) {
             console.error('Failed to load language preference', e);
         }
-    }, []);
+        return 'en';
+    });
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
@@ -60,18 +59,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     const t = (key: TranslationKeys): string => {
         const keys = key.split('.');
-        let value: any = translations[language];
+        let value: unknown = translations[language];
 
         for (const k of keys) {
             if (value && typeof value === 'object' && k in value) {
-                value = value[k as keyof typeof value];
+                value = (value as Record<string, unknown>)[k];
             } else {
                 // Fallback to English if translation is missing
                 console.warn(`Missing translation for key: ${key} in language: ${language}`);
-                let fallback: any = translations['en'];
+                let fallback: unknown = translations['en'];
                 for (const fk of keys) {
                     if (fallback && typeof fallback === 'object' && fk in fallback) {
-                        fallback = fallback[fk as keyof typeof fallback];
+                        fallback = (fallback as Record<string, unknown>)[fk];
                     } else {
                         return key; // Return key if even fallback fails
                     }

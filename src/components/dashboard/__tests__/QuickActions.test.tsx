@@ -2,21 +2,22 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QuickActions } from '../QuickActions';
 import '@testing-library/jest-dom';
+import HomeIcon from '@mui/icons-material/Home';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+        div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) => <div {...props}>{children}</div>,
     },
 }));
 
 describe('QuickActions', () => {
     const mockOnNavigate = jest.fn();
-    const MockIcon = () => <div data-testid="mock-icon">Icon</div>;
 
     const mockMenuItems = [
-        { id: 1, title: 'Item 1', path: '/item-1', color: '#000', icon: MockIcon },
-        { id: 2, title: 'Item 2', path: '/item-2', color: '#000', icon: MockIcon },
+        { id: 1, title: 'Item 1', path: '/item-1', color: '#000', icon: HomeIcon },
+        { id: 2, title: 'Item 2', path: '/item-2', color: '#000', icon: SettingsIcon },
     ];
 
     const defaultProps = {

@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, Paper, Typography, useTheme, alpha } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKeyboard } from '../../context/KeyboardContext';
-import { useLanguage } from '../../context/LanguageContext';
 import BackspaceIcon from '@mui/icons-material/Backspace';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -10,8 +9,25 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 /**
  * Premium virtual keyboard key with tactile feedback.
  */
-const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, isActive = false }: any) => {
+interface KeyProps {
+    label: string | React.ReactNode;
+    value: string;
+    onClick: (value: string) => void;
+    isSpecial?: boolean;
+    width?: number;
+    isActive?: boolean;
+}
+
+const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, isActive = false }: KeyProps) => {
     const theme = useTheme();
+
+    // Get aria-label as string
+    const ariaLabel = typeof label === 'string'
+        ? (label === 'BACKSPACE' ? 'Backspace' : label === 'SHIFT' ? 'Shift' : label)
+        : 'Key';
+
+    // Get the value to pass to onClick
+    const keyValue = value || (typeof label === 'string' ? label : '');
 
     return (
         <motion.div
@@ -27,11 +43,11 @@ const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, i
             <Paper
                 elevation={isActive ? 0 : 2}
                 role="button"
-                aria-label={label === 'BACKSPACE' ? 'Backspace' : label === 'SHIFT' ? 'Shift' : label}
+                aria-label={ariaLabel}
                 tabIndex={0}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                     e.preventDefault();
-                    onClick(value || label);
+                    onClick(keyValue);
                 }}
                 sx={{
                     height: 64,
@@ -77,10 +93,10 @@ const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, i
                         boxShadow: 'none',
                     }
                 }}
-                onKeyDown={(e) => {
+                onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        onClick(value || label);
+                        onClick(keyValue);
                     }
                 }}
             >
@@ -90,10 +106,11 @@ const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, i
     );
 });
 
+Key.displayName = 'Key';
+
 export default function VirtualKeyboard() {
     const theme = useTheme();
     const { isVisible, hideKeyboard, handleKeyPress, layout: currentLayoutType, inputValue, setLayout, label } = useKeyboard();
-    const { t } = useLanguage();
     const [activeKey, setActiveKey] = useState<string | null>(null);
 
     const layouts = useMemo(() => ({
@@ -128,6 +145,21 @@ export default function VirtualKeyboard() {
 
     const currentKeys = layouts[currentLayoutType === 'symbol' ? 'default' : currentLayoutType] || layouts.default;
     const isNumeric = currentLayoutType === 'numeric';
+
+    // Define handleKeyClick with useCallback BEFORE useEffect
+    const handleKeyClick = useCallback((key: string) => {
+        if (key === '123') {
+            setLayout('numeric');
+        } else if (key === 'ABC') {
+            setLayout('default');
+        } else if (key === 'SHIFT') {
+            setLayout(currentLayoutType === 'default' ? 'shift' : 'default');
+        } else if (key === 'DONE') {
+            hideKeyboard();
+        } else {
+            handleKeyPress(key);
+        }
+    }, [setLayout, currentLayoutType, hideKeyboard, handleKeyPress]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -168,21 +200,7 @@ export default function VirtualKeyboard() {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [currentKeys, isNumeric, handleKeyPress, hideKeyboard, setLayout, currentLayoutType, isVisible]);
-
-    const handleKeyClick = (key: string) => {
-        if (key === '123') {
-            setLayout('numeric');
-        } else if (key === 'ABC') {
-            setLayout('default');
-        } else if (key === 'SHIFT') {
-            setLayout(currentLayoutType === 'default' ? 'shift' : 'default');
-        } else if (key === 'DONE') {
-            hideKeyboard();
-        } else {
-            handleKeyPress(key);
-        }
-    };
+    }, [currentKeys, isNumeric, handleKeyClick, isVisible]);
 
     if (!isVisible) return null;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Grid, Paper } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 interface Account {
     id: number;
@@ -14,7 +14,7 @@ interface AccountSummaryProps {
     accounts: Account[];
     totalBalance: number;
     isDark: boolean;
-    itemVariants: any;
+    itemVariants: Variants;
 }
 
 export const AccountSummary: React.FC<AccountSummaryProps> = ({

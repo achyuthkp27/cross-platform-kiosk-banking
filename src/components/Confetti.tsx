@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, alpha } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface ConfettiPiece {
     id: number;

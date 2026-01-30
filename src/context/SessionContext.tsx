@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 
 interface SessionContextType {
@@ -22,7 +22,6 @@ export const useSession = () => {
 };
 
 // Configuration
-const SESSION_TIMEOUT = 300; // 5 minutes in seconds
 const WARNING_THRESHOLD = 30; // Show warning when 30 seconds remain
 
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -51,9 +50,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
-    const isProtectedRoute = useCallback(() => {
-        return pathname !== '/';
-    }, [pathname]);
+    // Track if we've initialized the session for this navigation
+    const prevPathnameRef = useRef(pathname);
 
     const endSession = useCallback(() => {
         setIsActive(false);
@@ -70,18 +68,24 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setShowWarning(false);
     }, [isActive, sessionDuration]);
 
-    // Timer Logic
+    // Handle route-based session activation
+    // Using ref comparison to avoid cascading renders
     useEffect(() => {
-        if (pathname === '/') {
+        const prevPathname = prevPathnameRef.current;
+        prevPathnameRef.current = pathname;
+
+        // Navigating to home - end session
+        if (pathname === '/' && prevPathname !== '/') {
             setIsActive(false);
             return;
-        } else {
-            if (!isActive) {
-                setIsActive(true);
-                setTimeLeft(sessionDuration);
-            }
         }
-    }, [pathname, sessionDuration, isActive]); // Added missing dependencies
+
+        // Navigating away from home - start session
+        if (pathname !== '/' && prevPathname === '/') {
+            setIsActive(true);
+            setTimeLeft(sessionDuration);
+        }
+    }, [pathname, sessionDuration]);
 
     useEffect(() => {
         if (!isActive) return;

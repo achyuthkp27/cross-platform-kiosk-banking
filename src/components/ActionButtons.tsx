@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, alpha, useTheme } from '@mui/material';
+import { Box, Button, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useThemeContext } from '../context/ThemeContext';
 
@@ -28,7 +28,6 @@ export default function ActionButtons({
     loading = false,
     fullWidth = true
 }: ActionButtonsProps) {
-    const theme = useTheme();
     const { mode } = useThemeContext();
     const isDark = mode === 'dark';
 

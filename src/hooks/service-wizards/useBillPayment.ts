@@ -9,13 +9,20 @@ export const BILLERS = {
     gas: ['MGL', 'IGL'],
 };
 
+export interface BillDetails {
+    amount: number;
+    dueDate: string;
+    name: string;
+    billNo: string;
+}
+
 export const useBillPayment = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [category, setCategory] = useState('');
     const [biller, setBiller] = useState('');
     const [consumerNo, setConsumerNo] = useState('');
-    const [billDetails, setBillDetails] = useState<any>(null);
+    const [billDetails, setBillDetails] = useState<BillDetails | null>(null);
     const [error, setError] = useState('');
     const [mockTxnId, setMockTxnId] = useState('');
 

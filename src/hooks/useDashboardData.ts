@@ -3,7 +3,6 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import React from 'react';
 
 export const useDashboardData = () => {
     const { t } = useLanguage();

@@ -1,20 +1,21 @@
 import React from 'react';
 import { Box, Typography, Grid, Paper, alpha } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
+import { SvgIconComponent } from '@mui/icons-material';
 
 interface MenuItem {
     id: number;
     title: string;
     path: string;
     color: string;
-    icon: any; // Using 'any' for the MUI icon component
+    icon: SvgIconComponent;
 }
 
 interface QuickActionsProps {
     menuItems: MenuItem[];
     onNavigate: (path: string) => void;
     isDark: boolean;
-    itemVariants: any;
+    itemVariants: Variants;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({

@@ -109,7 +109,7 @@ export default function OTPFieldGroup({
                     handleChange(key, index);
                 } else if (newValue === '') {
                     // Backspace was pressed
-                    handleKeyDown({ key: 'Backspace', preventDefault: () => { } } as any, index);
+                    handleKeyDown({ key: 'Backspace', preventDefault: () => { } } as React.KeyboardEvent, index);
                 }
             },
             1, // maxLength of 1 for OTP digits

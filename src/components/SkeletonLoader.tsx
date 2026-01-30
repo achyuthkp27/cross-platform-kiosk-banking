@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Skeleton, alpha } from '@mui/material';
+import { Box, Skeleton, BoxProps } from '@mui/material';
 import { motion } from 'framer-motion';
 
 interface SkeletonLoaderProps {
@@ -10,7 +10,7 @@ interface SkeletonLoaderProps {
 /**
  * Premium skeleton loader with shimmer animation
  */
-const ShimmerBox = ({ children, ...props }: { children?: React.ReactNode } & any) => (
+const ShimmerBox = ({ children, ...props }: { children?: React.ReactNode } & Omit<BoxProps, 'children'>) => (
     <Box
         sx={{
             position: 'relative',

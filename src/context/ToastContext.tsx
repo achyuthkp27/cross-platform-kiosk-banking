@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Snackbar, Alert, AlertColor, Slide, SlideProps, Box, Typography, alpha } from '@mui/material';
+import { Snackbar, AlertColor, Box, Typography, alpha } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -30,10 +30,6 @@ const ToastContext = createContext<ToastContextType>({
 });
 
 export const useToast = () => useContext(ToastContext);
-
-const SlideTransition = (props: SlideProps) => {
-    return <Slide {...props} direction="up" />;
-};
 
 const getIcon = (severity: AlertColor) => {
     const iconSx = { fontSize: 28 };

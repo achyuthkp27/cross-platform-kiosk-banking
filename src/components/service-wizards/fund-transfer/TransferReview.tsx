@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import { motion } from 'framer-motion';
-import { MOCK_ACCOUNTS } from '../../../hooks/service-wizards/useFundTransfer';
+import { MOCK_ACCOUNTS, FormState } from '../../../hooks/service-wizards/useFundTransfer';
 
 interface TransferReviewProps {
-    form: any;
+    form: FormState;
     getBeneficiaryDetails: () => string;
     isDark: boolean;
 }

@@ -45,7 +45,7 @@ export default function KioskTextField({
             keyboardType,
             value,
             (newValue: string) => {
-                onChange({ target: { value: newValue } } as any);
+                onChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);
             },
             undefined,
             labelStr,

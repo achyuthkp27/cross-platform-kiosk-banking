@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, ClickAwayListener, useTheme, alpha } from '@mui/material';
+import { Box, Typography, ClickAwayListener, useTheme } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import { Language } from '../../i18n/translations';
 import { motion, AnimatePresence } from 'framer-motion';

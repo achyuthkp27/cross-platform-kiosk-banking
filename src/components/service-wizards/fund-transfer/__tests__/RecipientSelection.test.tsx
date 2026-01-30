@@ -2,15 +2,16 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { RecipientSelection } from '../RecipientSelection';
+import { TextFieldProps } from '@mui/material';
 
 // Mock KioskTextField to avoid KeyboardProvider dependency
 jest.mock('../../../KioskTextField', () => {
-    return function MockKioskTextField(props: any) {
+    return function MockKioskTextField(props: TextFieldProps & { keyboardType?: string }) {
         return (
             <div data-testid="kiosk-text-field">
                 <label>{props.label}</label>
                 <input
-                    value={props.value}
+                    value={props.value as string}
                     onChange={props.onChange}
                 />
                 {props.helperText && <span>{props.helperText}</span>}
@@ -24,6 +25,8 @@ const defaultProps = {
     form: {
         fromAccount: '',
         beneficiaryId: '',
+        amount: '',
+        remarks: '',
         newBeneficiary: { name: '', account: '', confirmAccount: '', ifsc: '' }
     },
     setForm: jest.fn(),

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, alpha, useTheme } from '@mui/material';
+import { Box, Typography, Button, alpha, useTheme, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
 import InboxIcon from '@mui/icons-material/Inbox';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
@@ -17,7 +17,7 @@ interface EmptyStateProps {
     icon?: React.ReactNode;
 }
 
-const getDefaultIcon = (type: EmptyStateType, theme: any) => {
+const getDefaultIcon = (type: EmptyStateType, theme: Theme) => {
     const iconSx = {
         fontSize: 80,
         color: alpha(theme.palette.text.secondary, 0.3),

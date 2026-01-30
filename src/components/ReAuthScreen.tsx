@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Stack, CircularProgress, Box } from '@mui/material';
+import { Typography, Button, Box } from '@mui/material';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '../context/LanguageContext';

@@ -8,12 +8,28 @@
  * - Keyboard shortcut blocking
  */
 
+// Browser-specific fullscreen API interfaces (vendor-prefixed)
+interface VendorFullscreenElement {
+    webkitRequestFullscreen?: () => Promise<void>;
+    mozRequestFullScreen?: () => Promise<void>;
+    msRequestFullscreen?: () => Promise<void>;
+}
+
+interface VendorFullscreenDocument {
+    webkitFullscreenElement?: Element | null;
+    mozFullScreenElement?: Element | null;
+    msFullscreenElement?: Element | null;
+    webkitExitFullscreen?: () => Promise<void>;
+    mozCancelFullScreen?: () => Promise<void>;
+    msExitFullscreen?: () => Promise<void>;
+}
+
 /**
  * Request fullscreen mode for the document element
  */
 export const enterFullscreen = async (): Promise<boolean> => {
     try {
-        const docEl = document.documentElement as any;
+        const docEl = document.documentElement as HTMLElement & VendorFullscreenElement;
 
         if (docEl.requestFullscreen) {
             await docEl.requestFullscreen();
@@ -38,7 +54,7 @@ export const enterFullscreen = async (): Promise<boolean> => {
  */
 export const exitFullscreen = async (): Promise<boolean> => {
     try {
-        const doc = document as any;
+        const doc = document as Document & VendorFullscreenDocument;
 
         if (doc.exitFullscreen) {
             await doc.exitFullscreen();
@@ -62,7 +78,7 @@ export const exitFullscreen = async (): Promise<boolean> => {
  * Check if currently in fullscreen mode
  */
 export const isFullscreen = (): boolean => {
-    const doc = document as any;
+    const doc = document as Document & VendorFullscreenDocument;
     return !!(
         doc.fullscreenElement ||
         doc.webkitFullscreenElement ||

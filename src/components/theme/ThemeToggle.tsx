@@ -1,17 +1,16 @@
 import React from 'react';
-import { IconButton, Box, useTheme } from '@mui/material';
+import { IconButton, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useThemeContext } from '../../context/ThemeContext';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 interface ThemeToggleProps {
-    sx?: any;
+    sx?: React.CSSProperties;
     inline?: boolean; // When true, uses relative positioning for inline layouts
 }
 
 const ThemeToggle = ({ sx, inline = false }: ThemeToggleProps) => {
-    const theme = useTheme();
     const { mode, toggleTheme } = useThemeContext();
     const isDark = mode === 'dark';
 

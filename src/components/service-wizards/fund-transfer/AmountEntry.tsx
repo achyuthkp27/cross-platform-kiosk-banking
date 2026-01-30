@@ -2,10 +2,11 @@ import React from 'react';
 import { Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import KioskTextField from '../../KioskTextField';
+import { FormState } from '../../../hooks/service-wizards/useFundTransfer';
 
 interface AmountEntryProps {
-    form: any;
-    setForm: (form: any) => void;
+    form: FormState;
+    setForm: (form: FormState) => void;
     errors: Record<string, string>;
 }
 

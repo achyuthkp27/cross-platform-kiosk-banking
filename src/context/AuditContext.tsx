@@ -6,12 +6,12 @@ export interface AuditLog {
     user: string;
     time: string;
     timestamp: number; // For sorting
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 interface AuditContextType {
     logs: AuditLog[];
-    addLog: (action: string, user: string, metadata?: any) => void;
+    addLog: (action: string, user: string, metadata?: Record<string, unknown>) => void;
     clearLogs: () => void;
 }
 
@@ -32,7 +32,7 @@ export const AuditProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }, []);
 
-    const addLog = (action: string, user: string, metadata?: any) => {
+    const addLog = (action: string, user: string, metadata?: Record<string, unknown>) => {
         const now = new Date();
         const newLog: AuditLog = {
             id: crypto.randomUUID(),

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Paper, Box, useTheme } from '@mui/material';
+import { Container, Paper, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useThemeContext } from '../context/ThemeContext';
 
@@ -15,7 +15,6 @@ interface KioskPageProps {
  * Fully theme-aware for dark/light modes.
  */
 export default function KioskPage({ children, maxWidth = 700, noPaper = false }: KioskPageProps) {
-    const theme = useTheme();
     const { mode } = useThemeContext();
     const isDark = mode === 'dark';
 
