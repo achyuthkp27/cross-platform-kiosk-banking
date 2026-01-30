@@ -8,12 +8,16 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useThemeContext } from '../../src/context/ThemeContext';
 import { useToast } from '../../src/context/ToastContext';
+import { useAudit } from '../../src/context/AuditContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 export default function AdminLogin() {
     const router = useRouter();
     const theme = useTheme();
     const { mode } = useThemeContext();
     const { showError, showSuccess } = useToast();
+    const { addLog } = useAudit();
+    const { t } = useLanguage();
     const isDark = mode === 'dark';
 
     const [pin, setPin] = useState('');
@@ -22,10 +26,12 @@ export default function AdminLogin() {
     const handleLogin = () => {
         // Mock Admin PIN authentication
         if (pin === '1234') {
-            showSuccess('Admin access granted');
+            addLog('Admin Login Success', 'ADMIN', { method: 'PIN' });
+            showSuccess(t('admin.success_login'));
             router.replace('/admin/dashboard');
         } else {
-            showError('Invalid Admin PIN');
+            addLog('Admin Login Failed', 'UNKNOWN', { attempt: pin });
+            showError(t('admin.error_pin'));
             setPin('');
         }
     };

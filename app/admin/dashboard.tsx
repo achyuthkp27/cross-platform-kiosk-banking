@@ -10,25 +10,24 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useThemeContext } from '../../src/context/ThemeContext';
 import { useLanguage } from '../../src/context/LanguageContext';
 import { useToast } from '../../src/context/ToastContext';
+import { useSession } from '../../src/context/SessionContext';
+import { useAudit } from '../../src/context/AuditContext';
 
 export default function AdminDashboard() {
     const router = useRouter();
     const theme = useTheme();
     const { mode, toggleTheme } = useThemeContext();
-    const { language, setLanguage } = useLanguage();
+    const { t, language, setLanguage } = useLanguage();
     const { showSuccess, showInfo } = useToast();
+    const { sessionDuration, setSessionDuration } = useSession();
+    const { logs: auditLogs, addLog } = useAudit();
     const isDark = mode === 'dark';
 
     const [tabValue, setTabValue] = useState(0);
-    const [auditLogs] = useState([
-        { id: 1, action: 'System Boot', user: 'SYSTEM', time: '08:00 AM' },
-        { id: 2, action: 'User Login', user: 'User_1234', time: '08:15 AM' },
-        { id: 3, action: 'Deposit', user: 'User_1234', time: '08:20 AM' },
-        { id: 4, action: 'Admin Login', user: 'ADMIN', time: 'Now' },
-    ]);
 
     const handleLogout = () => {
-        showInfo('Logged out of Admin Console');
+        addLog('Admin Logout', 'ADMIN');
+        showInfo(t('admin.logged_out'));
         router.replace('/');
     };
 
@@ -50,7 +49,7 @@ export default function AdminDashboard() {
             >
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                     <Typography variant="h6" fontWeight={700}>
-                        Kiosk Admin
+                        {t('admin.title')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                         v1.0.0 (Build 2026.1)
@@ -69,9 +68,9 @@ export default function AdminDashboard() {
                         }
                     }}
                 >
-                    <Tab icon={<SettingsIcon sx={{ mr: 1 }} />} iconPosition="start" label="General" />
-                    <Tab icon={<SecurityIcon sx={{ mr: 1 }} />} iconPosition="start" label="Security" />
-                    <Tab icon={<HistoryIcon sx={{ mr: 1 }} />} iconPosition="start" label="Audit Logs" />
+                    <Tab icon={<SettingsIcon sx={{ mr: 1 }} />} iconPosition="start" label={t('admin.tabs.general')} />
+                    <Tab icon={<SecurityIcon sx={{ mr: 1 }} />} iconPosition="start" label={t('admin.tabs.security')} />
+                    <Tab icon={<HistoryIcon sx={{ mr: 1 }} />} iconPosition="start" label={t('admin.tabs.logs')} />
                 </Tabs>
                 <Box sx={{ mt: 'auto', p: 2 }}>
                     <Button
@@ -80,7 +79,7 @@ export default function AdminDashboard() {
                         startIcon={<LogoutIcon />}
                         onClick={handleLogout}
                     >
-                        Logout
+                        {t('admin.logout')}
                     </Button>
                 </Box>
             </Paper>
@@ -94,9 +93,9 @@ export default function AdminDashboard() {
                     transition={{ duration: 0.3 }}
                 >
                     <Typography variant="h4" fontWeight={700} gutterBottom>
-                        {tabValue === 0 && 'System Settings'}
-                        {tabValue === 1 && 'Security Configuration'}
-                        {tabValue === 2 && 'System Audit Logs'}
+                        {tabValue === 0 && t('admin.settings.system')}
+                        {tabValue === 1 && t('admin.settings.security')}
+                        {tabValue === 2 && t('admin.settings.logs')}
                     </Typography>
 
                     <Paper sx={{ p: 4, borderRadius: 3, maxWidth: 800 }}>
@@ -105,8 +104,8 @@ export default function AdminDashboard() {
                             <List>
                                 <ListItem>
                                     <ListItemText
-                                        primary="Kiosk Theme Mode"
-                                        secondary="Toggle between Light and Dark mode for the kiosk interface."
+                                        primary={t('admin.settings.theme')}
+                                        secondary={t('admin.settings.theme_desc')}
                                     />
                                     <FormControlLabel
                                         control={<Switch checked={isDark} onChange={toggleTheme} />}
@@ -116,8 +115,8 @@ export default function AdminDashboard() {
                                 <Divider component="li" />
                                 <ListItem>
                                     <ListItemText
-                                        primary="Default Language"
-                                        secondary="Set the primary language for new sessions."
+                                        primary={t('admin.settings.language')}
+                                        secondary={t('admin.settings.language_desc')}
                                     />
                                     <Select
                                         size="small"
@@ -130,6 +129,30 @@ export default function AdminDashboard() {
                                         <MenuItem value="nl">Nederlands</MenuItem>
                                     </Select>
                                 </ListItem>
+                                <Divider component="li" />
+                                <ListItem>
+                                    <ListItemText
+                                        primary={t('admin.settings.timeout')}
+                                        secondary={t('admin.settings.timeout_desc')}
+                                    />
+                                    <Select
+                                        size="small"
+                                        value={sessionDuration / 60}
+                                        onChange={(e) => {
+                                            const minutes = Number(e.target.value);
+                                            setSessionDuration(minutes * 60);
+                                            showSuccess(`Session timeout updated to ${minutes} minutes`);
+                                        }}
+                                        sx={{ minWidth: 120 }}
+                                    >
+                                        <MenuItem value={1}>1 Minute</MenuItem>
+                                        <MenuItem value={2}>2 Minutes</MenuItem>
+                                        <MenuItem value={5}>5 Minutes</MenuItem>
+                                        <MenuItem value={10}>10 Minutes</MenuItem>
+                                        <MenuItem value={15}>15 Minutes</MenuItem>
+                                        <MenuItem value={30}>30 Minutes</MenuItem>
+                                    </Select>
+                                </ListItem>
                             </List>
                         )}
 
@@ -137,9 +160,9 @@ export default function AdminDashboard() {
                         {tabValue === 1 && (
                             <Box>
                                 <Typography variant="body1" paragraph>
-                                    Security settings are locked in this demo version.
+                                    {t('admin.security_locked')}
                                 </Typography>
-                                <Button variant="outlined" disabled>Change Admin PIN</Button>
+                                <Button variant="outlined" disabled>{t('admin.change_pin')}</Button>
                             </Box>
                         )}
 

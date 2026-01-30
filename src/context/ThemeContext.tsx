@@ -29,7 +29,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             try {
                 // Check if we are in browser environment
                 if (typeof window !== 'undefined' && window.localStorage) {
-                    const storedTheme = window.localStorage.getItem('theme_mode') as ThemeMode;
+                    const storedTheme = window.localStorage.getItem('kiosk_theme_preference') as ThemeMode;
                     if (storedTheme === 'light' || storedTheme === 'dark') {
                         setModeState(storedTheme);
                     }
@@ -47,7 +47,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const newMode = prevMode === 'light' ? 'dark' : 'light';
             try {
                 if (typeof window !== 'undefined' && window.localStorage) {
-                    window.localStorage.setItem('theme_mode', newMode);
+                    window.localStorage.setItem('kiosk_theme_preference', newMode);
                 }
             } catch (e) {
                 console.error('Failed to save theme preference', e);
@@ -60,7 +60,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setModeState(newMode);
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
-                window.localStorage.setItem('theme_mode', newMode);
+                window.localStorage.setItem('kiosk_theme_preference', newMode);
             }
         } catch (e) {
             console.error('Failed to save theme preference', e);

@@ -65,6 +65,9 @@ export default function KioskTextField({
             onFocus={handleFocus}
             onBlur={handleBlur}
             label={label}
+            aria-label={typeof label === 'string' ? label : 'Input field'}
+            aria-haspopup="dialog"
+            aria-expanded={isFocused}
             variant="outlined"
             inputProps={{
                 inputMode: 'none',

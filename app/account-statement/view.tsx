@@ -163,6 +163,7 @@ export default function AccountStatementView() {
                                 borderRadius: 3,
                                 borderWidth: 2,
                                 fontWeight: 600,
+                                mr: 18,
                                 '&:hover': { borderWidth: 2 }
                             }}
                         >

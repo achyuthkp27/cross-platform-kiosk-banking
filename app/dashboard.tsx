@@ -17,28 +17,16 @@ const iconMap: Record<string, React.ReactNode> = {
     '/bill-payment': <ReceiptLongIcon sx={{ fontSize: 48 }} />
 };
 
+import { useSession } from '../src/context/SessionContext';
+
 export default function Dashboard() {
     const router = useRouter();
     const { t } = useLanguage();
     const theme = useTheme();
     const { mode } = useThemeContext();
-    const [sessionTime, setSessionTime] = useState(300);
+    const { timeLeft, endSession } = useSession(); // Use global session
 
     const isDark = mode === 'dark';
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setSessionTime(prev => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    router.replace('/');
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
@@ -125,9 +113,9 @@ export default function Dashboard() {
                     </Box>
 
                     <Chip
-                        label={`Session: ${formatTime(sessionTime)}`}
-                        color={sessionTime < 60 ? 'error' : 'default'}
-                        variant={sessionTime < 60 ? 'filled' : 'outlined'}
+                        label={`Session: ${formatTime(timeLeft)}`}
+                        color={timeLeft < 60 ? 'error' : 'default'}
+                        variant={timeLeft < 60 ? 'filled' : 'outlined'}
                         sx={{
                             fontWeight: 600,
                             fontSize: '0.875rem',
@@ -141,7 +129,7 @@ export default function Dashboard() {
                         variant="outlined"
                         color="error"
                         startIcon={<LogoutIcon />}
-                        onClick={handleLogout}
+                        onClick={endSession}
                         sx={{
                             borderRadius: 2,
                             mr: 18,

@@ -1,11 +1,11 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper, useTheme } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import HomeIcon from '@mui/icons-material/Home';
 
 interface Props {
     children: ReactNode;
-    fallback?: ReactNode;
 }
 
 interface State {
@@ -13,118 +13,111 @@ interface State {
     error: Error | null;
 }
 
-/**
- * Error Boundary component to catch React errors and display a user-friendly fallback.
- * Prevents the entire app from crashing due to component errors.
- */
-class ErrorBoundary extends Component<Props, State> {
+export default class ErrorBoundary extends Component<Props, State> {
     public state: State = {
         hasError: false,
         error: null,
     };
 
     public static getDerivedStateFromError(error: Error): State {
+        // Update state so the next render will show the fallback UI.
         return { hasError: true, error };
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('Uncaught error:', error, errorInfo);
-        // In production, you could send this to an error reporting service
     }
 
-    private handleRetry = () => {
+    private handleReset = () => {
         this.setState({ hasError: false, error: null });
-    };
-
-    private handleGoHome = () => {
-        window.location.href = '/';
+        window.location.href = '/'; // Hard reload to clear state
     };
 
     public render() {
         if (this.state.hasError) {
-            if (this.props.fallback) {
-                return this.props.fallback;
-            }
-
             return (
                 <Box
                     sx={{
-                        minHeight: '100vh',
+                        height: '100vh',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        p: 4,
-                        bgcolor: 'background.default',
+                        bgcolor: '#0F172A', // Dark background for safety
+                        p: 3,
                     }}
                 >
                     <Paper
-                        elevation={0}
+                        elevation={6}
                         sx={{
-                            p: 6,
+                            p: 5,
+                            borderRadius: 4,
                             maxWidth: 500,
                             textAlign: 'center',
-                            borderRadius: 4,
-                            border: '1px solid',
-                            borderColor: 'divider',
+                            bgcolor: '#1E293B',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.1)',
                         }}
                     >
-                        <ErrorOutlineIcon
+                        <Box
                             sx={{
-                                fontSize: 80,
-                                color: 'error.main',
+                                width: 80,
+                                height: 80,
+                                borderRadius: '50%',
+                                bgcolor: 'rgba(239, 68, 68, 0.1)', // Red tint
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mx: 'auto',
                                 mb: 3,
                             }}
-                        />
-                        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-                            Something went wrong
+                        >
+                            <WarningAmberRoundedIcon sx={{ fontSize: 40, color: '#EF4444' }} />
+                        </Box>
+
+                        <Typography variant="h4" fontWeight={700} gutterBottom>
+                            System Error
                         </Typography>
-                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                            We encountered an unexpected error. Please try again or return to the home screen.
+                        <Typography variant="body1" sx={{ mb: 4, color: '#94A3B8' }}>
+                            We encountered an unexpected issue. For security, your session has been paused.
                         </Typography>
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
-                            <Box
+
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<HomeIcon />}
+                                onClick={() => window.location.href = '/'}
                                 sx={{
-                                    mb: 4,
-                                    p: 2,
-                                    bgcolor: 'error.lighter',
-                                    borderRadius: 2,
-                                    textAlign: 'left',
-                                    overflow: 'auto',
+                                    borderRadius: 3,
+                                    py: 1.5,
+                                    color: 'white',
+                                    borderColor: 'rgba(255,255,255,0.2)',
+                                    '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.05)' }
                                 }}
                             >
-                                <Typography
-                                    variant="caption"
-                                    component="pre"
-                                    sx={{
-                                        fontFamily: '"SF Mono", Monaco, monospace',
-                                        whiteSpace: 'pre-wrap',
-                                        wordBreak: 'break-word',
-                                        color: 'error.main',
-                                    }}
-                                >
+                                Home
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<RefreshIcon />}
+                                onClick={this.handleReset}
+                                sx={{
+                                    borderRadius: 3,
+                                    py: 1.5,
+                                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+                                }}
+                            >
+                                Restart Kiosk
+                            </Button>
+                        </Box>
+
+                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                            <Box sx={{ mt: 4, p: 2, bgcolor: 'rgba(0,0,0,0.3)', borderRadius: 2, textAlign: 'left' }}>
+                                <Typography variant="caption" fontFamily="monospace" color="#EF4444">
                                     {this.state.error.toString()}
                                 </Typography>
                             </Box>
                         )}
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                            <Button
-                                variant="outlined"
-                                startIcon={<RefreshIcon />}
-                                onClick={this.handleRetry}
-                                size="large"
-                                sx={{ borderRadius: 2 }}
-                            >
-                                Try Again
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={this.handleGoHome}
-                                size="large"
-                                sx={{ borderRadius: 2 }}
-                            >
-                                Go Home
-                            </Button>
-                        </Box>
                     </Paper>
                 </Box>
             );
@@ -133,5 +126,3 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
-
-export default ErrorBoundary;

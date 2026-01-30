@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { useKeyboard } from '../context/KeyboardContext';
 import { useToast } from '../context/ToastContext';
+import { useAudit } from '../context/AuditContext';
 import KioskPage from './KioskPage';
 import OTPFieldGroup from './OTPFieldGroup';
 import SuccessState from './SuccessState';
@@ -63,6 +64,7 @@ export default function OTPVerificationScreen({
 }: OTPVerificationScreenProps) {
     const { t } = useLanguage();
     const { showSuccess, showInfo } = useToast();
+    const verificationRef = React.useRef(false);
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(initialTimer);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -76,10 +78,15 @@ export default function OTPVerificationScreen({
     }, [timer]);
 
     const { hideKeyboard } = useKeyboard();
+    const { addLog } = useAudit();
 
     const handleVerify = (otpValue?: string) => {
+        if (verificationRef.current) return;
+
         const finalOtp = otpValue || otp.join('');
         if (finalOtp.length === 6) {
+            verificationRef.current = true;
+            addLog('User Login Success', userId || 'User_Unknown', { method: 'OTP' });
             hideKeyboard();
             setIsSuccess(true);
             showSuccess(t('otp.verified') || 'OTP Verified!');
@@ -91,6 +98,7 @@ export default function OTPVerificationScreen({
     };
 
     const handleResend = () => {
+        verificationRef.current = false;
         setTimer(initialTimer);
         setOtp(['', '', '', '', '', '']);
         showInfo(t('otp.resent') || 'OTP has been resent');

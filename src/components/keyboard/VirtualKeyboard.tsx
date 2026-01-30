@@ -26,6 +26,9 @@ const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, i
         >
             <Paper
                 elevation={isActive ? 0 : 2}
+                role="button"
+                aria-label={label === 'BACKSPACE' ? 'Backspace' : label === 'SHIFT' ? 'Shift' : label}
+                tabIndex={0}
                 onClick={(e) => {
                     e.preventDefault();
                     onClick(value || label);
@@ -72,6 +75,12 @@ const Key = React.memo(({ label, value, onClick, isSpecial = false, width = 1, i
                     '&:active': {
                         transform: 'translateY(1px)',
                         boxShadow: 'none',
+                    }
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onClick(value || label);
                     }
                 }}
             >

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '../src/context/LanguageContext';
 import KioskPage from '../src/components/KioskPage';
 import ActionButtons from '../src/components/ActionButtons';
+import { useAudit } from '../src/context/AuditContext';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -12,6 +13,7 @@ export default function LoginScreen() {
     const [userId, setUserId] = useState('');
     const [dob, setDob] = useState('');
     const [error, setError] = useState('');
+    const { addLog } = useAudit();
 
     const validateAndProceed = () => {
         if (!userId.trim()) {
@@ -42,6 +44,7 @@ export default function LoginScreen() {
             return;
         }
 
+        addLog('User Login Initiated', userId);
         router.push('/otp');
     };
 
@@ -74,14 +77,24 @@ export default function LoginScreen() {
                 value={dob}
                 keyboardType="numeric"
                 onChange={(e) => {
-                    let val = e.target.value.replace(/\D/g, '');
-                    if (val.length > 8) val = val.slice(0, 8);
+                    const inputVal = e.target.value;
+                    let cleanVal = inputVal.replace(/\D/g, '');
+                    if (cleanVal.length > 8) cleanVal = cleanVal.slice(0, 8);
 
-                    let formattedVal = val;
-                    if (val.length > 4) {
-                        formattedVal = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
-                    } else if (val.length > 2) {
-                        formattedVal = `${val.slice(0, 2)}/${val.slice(2)}`;
+                    let formattedVal = cleanVal;
+                    if (cleanVal.length > 4) {
+                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}/${cleanVal.slice(4)}`;
+                    } else if (cleanVal.length > 2) {
+                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}`;
+                    }
+
+                    // Auto-append slash when typing 2nd day digit or 2nd month digit
+                    if (inputVal.length > dob.length) {
+                        if (cleanVal.length === 2) {
+                            formattedVal = `${cleanVal}/`;
+                        } else if (cleanVal.length === 4) {
+                            formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}/`;
+                        }
                     }
 
                     setDob(formattedVal);
