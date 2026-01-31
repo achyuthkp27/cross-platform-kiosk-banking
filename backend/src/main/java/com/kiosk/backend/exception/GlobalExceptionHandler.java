@@ -18,6 +18,12 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+        private final com.kiosk.backend.service.SecurityMetricsService metricsService;
+
+        public GlobalExceptionHandler(com.kiosk.backend.service.SecurityMetricsService metricsService) {
+                this.metricsService = metricsService;
+        }
+
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
         @ExceptionHandler(Exception.class)
@@ -82,6 +88,7 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
                 String requestId = MDC.get("requestId");
                 logger.warn("Access Denied [requestId={}]: {}", requestId, ex.getMessage());
+                metricsService.incrementSuspiciousRequest();
 
                 ApiError apiError = new ApiError(
                                 HttpStatus.FORBIDDEN.value(),
@@ -97,6 +104,7 @@ public class GlobalExceptionHandler {
                         HttpServletRequest request) {
                 String requestId = MDC.get("requestId");
                 logger.warn("Authentication Failed [requestId={}]: {}", requestId, ex.getMessage());
+                metricsService.incrementAuthFailure();
 
                 ApiError apiError = new ApiError(
                                 HttpStatus.UNAUTHORIZED.value(),

@@ -18,9 +18,12 @@ import java.util.ArrayList;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final com.kiosk.backend.service.SecurityMetricsService metricsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService,
+            com.kiosk.backend.service.SecurityMetricsService metricsService) {
         this.jwtService = jwtService;
+        this.metricsService = metricsService;
     }
 
     @Override
@@ -55,6 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
+            if (e instanceof io.jsonwebtoken.ExpiredJwtException) {
+                metricsService.incrementTokenExpired();
+            }
             // Token invalid or expired - just ignore, context remains empty
             // Ideally log this at debug
         }

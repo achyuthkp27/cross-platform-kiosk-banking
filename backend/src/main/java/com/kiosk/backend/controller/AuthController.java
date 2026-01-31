@@ -18,12 +18,15 @@ public class AuthController {
     private final AuthService authService;
     private final AuditService auditService;
     private final com.kiosk.backend.security.JwtService jwtService;
+    private final com.kiosk.backend.service.SecurityMetricsService metricsService;
 
     public AuthController(AuthService authService, AuditService auditService,
-            com.kiosk.backend.security.JwtService jwtService) {
+            com.kiosk.backend.security.JwtService jwtService,
+            com.kiosk.backend.service.SecurityMetricsService metricsService) {
         this.authService = authService;
         this.auditService = auditService;
         this.jwtService = jwtService;
+        this.metricsService = metricsService;
     }
 
     /**
@@ -46,6 +49,7 @@ public class AuthController {
 
         if (customerOpt.isEmpty()) {
             auditService.logCustomerAction("LOGIN_FAILED", userId, "Invalid credentials");
+            metricsService.incrementAuthFailure();
             response.put("success", false);
             response.put("message", "Invalid User ID or Date of Birth");
             return ResponseEntity.ok(response);
@@ -56,6 +60,7 @@ public class AuthController {
         String token = jwtService.generateToken(userId);
 
         auditService.logCustomerAction("LOGIN_SUCCESS", userId, null);
+        metricsService.incrementAuthSuccess();
 
         response.put("success", true);
         response.put("message", "Login successful");

@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'kiosk-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    # If running on Linux, 'host.docker.internal' might not work without extra flags.
+    # But for Mac/Windows Docker Desktop, it's standard.

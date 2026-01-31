@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
+    private final SecurityMetricsService metricsService;
 
-    public AuditService(AuditLogRepository auditLogRepository) {
+    public AuditService(AuditLogRepository auditLogRepository, SecurityMetricsService metricsService) {
         this.auditLogRepository = auditLogRepository;
+        this.metricsService = metricsService;
     }
 
     /**
@@ -29,6 +31,7 @@ public class AuditService {
         log.setDetails(details);
         log.setIpAddress(ipAddress);
 
+        metricsService.incrementAuditEvent();
         return auditLogRepository.save(log);
     }
 
