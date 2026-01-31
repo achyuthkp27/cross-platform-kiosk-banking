@@ -21,8 +21,8 @@ export interface OTPVerificationScreenProps {
     successMessage?: string;
     /** Sub-message shown on successful verification */
     successSubMessage?: string;
-    /** Called when OTP is submitted - receives the 6-digit OTP string */
-    onVerify: (otp: string) => void;
+    /** Called when OTP is submitted - receives the 6-digit OTP string. Can return a Promise that rejects on failure. */
+    onVerify: (otp: string) => Promise<void> | void;
     /** Called when back button is pressed */
     onBack?: () => void;
     /** Called when resend OTP is clicked */
@@ -80,20 +80,31 @@ export default function OTPVerificationScreen({
     const { hideKeyboard } = useKeyboard();
     const { addLog } = useAudit();
 
-    const handleVerify = (otpValue?: string) => {
-        if (verificationRef.current) return;
+    const [isValidating, setIsValidating] = useState(false);
 
+    const handleVerify = async (otpValue?: string) => {
         const finalOtp = otpValue || otp.join('');
-        if (finalOtp.length === 6) {
+        if (finalOtp.length !== 6 || isValidating) return;
+
+        setIsValidating(true);
+        
+        try {
+            // Await the verification callback
+            // If it throws or fails, we catch it below
+            await onVerify(finalOtp);
+
+            // Only proceed if verification succeeded (didn't throw)
             verificationRef.current = true;
             addLog('User Login Success', userId || 'User_Unknown', { method: 'OTP' });
             hideKeyboard();
             setIsSuccess(true);
             showSuccess(t('otp.verified') || 'OTP Verified!');
-            // Call the onVerify callback after showing success animation briefly
-            setTimeout(() => {
-                onVerify(finalOtp);
-            }, 1500);
+        } catch (error) {
+            console.error('OTP Verification failed:', error);
+            // Error handling is done by the parent usually, or we can show a generic error
+            // setOtp(['', '', '', '', '', '']); // Optional: Clear OTP on failure
+        } finally {
+            setIsValidating(false);
         }
     };
 

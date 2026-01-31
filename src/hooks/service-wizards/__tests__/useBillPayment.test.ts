@@ -42,16 +42,18 @@ describe('useBillPayment', () => {
             result.current.setConsumerNo('123456789');
         });
 
-        // Trigger fetch
+        // Trigger fetch and capture promise
+        let promise: Promise<void>;
         act(() => {
-            result.current.fetchBill();
+            promise = result.current.fetchBill();
         });
 
         expect(result.current.loading).toBe(true);
 
-        // Fast-forward timers
-        act(() => {
+        // Fast-forward timers and await promise resolution
+        await act(async () => {
             jest.runAllTimers();
+            await promise;
         });
 
         expect(result.current.loading).toBe(false);

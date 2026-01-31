@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Typography, Alert } from '@mui/material';
+import { Typography, Alert, CircularProgress } from '@mui/material';
 import KioskTextField from '../src/components/KioskTextField';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '../src/context/LanguageContext';
 import KioskPage from '../src/components/KioskPage';
 import ActionButtons from '../src/components/ActionButtons';
 import { useAudit } from '../src/context/AuditContext';
+import { authService, otpService } from '../src/services';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -13,9 +14,10 @@ export default function LoginScreen() {
     const [userId, setUserId] = useState('');
     const [dob, setDob] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const { addLog } = useAudit();
 
-    const validateAndProceed = () => {
+    const validateAndProceed = async () => {
         if (!userId.trim()) {
             setError(t('common.error'));
             return;
@@ -44,8 +46,34 @@ export default function LoginScreen() {
             return;
         }
 
-        addLog('User Login Initiated', userId);
-        router.push('/otp');
+        // Call backend API to validate credentials
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await authService.login({ userId, dob });
+            
+            if (response.success && response.data) {
+                // Store user info for OTP screen
+                sessionStorage.setItem('pendingUserId', userId);
+                sessionStorage.setItem('userName', response.data.name);
+                
+                // Generate OTP for login
+                await otpService.generate({ identifier: userId, purpose: 'LOGIN' });
+                
+                addLog('User Login Initiated', userId);
+                router.push('/otp');
+            } else {
+                setError(response.message || 'Invalid User ID or Date of Birth');
+                addLog('Login Failed', userId, { reason: response.message });
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Unable to connect to server. Please try again.');
+            addLog('Login Error', userId, { error: String(err) });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -67,6 +95,7 @@ export default function LoginScreen() {
                     setUserId(e.target.value);
                     setError('');
                 }}
+                disabled={isLoading}
             />
             <KioskTextField
                 fullWidth
@@ -76,16 +105,19 @@ export default function LoginScreen() {
                 placeholder="DD/MM/YYYY"
                 value={dob}
                 keyboardType="numeric"
+                maxLength={10}
+                disabled={isLoading}
                 onChange={(e) => {
                     const inputVal = e.target.value;
                     let cleanVal = inputVal.replace(/\D/g, '');
-                    if (cleanVal.length > 8) cleanVal = cleanVal.slice(0, 8);
+                    // Limit to 8 digits max (DDMMYYYY)
+                    cleanVal = cleanVal.slice(0, 8);
 
                     let formattedVal = cleanVal;
                     if (cleanVal.length > 4) {
-                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}/${cleanVal.slice(4)}`;
+                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}/${cleanVal.slice(4, 8)}`;
                     } else if (cleanVal.length > 2) {
-                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}`;
+                        formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}`;
                     }
 
                     // Auto-append slash when typing 2nd day digit or 2nd month digit
@@ -96,6 +128,9 @@ export default function LoginScreen() {
                             formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}/`;
                         }
                     }
+
+                    // Final safeguard: limit to 10 characters (DD/MM/YYYY)
+                    formattedVal = formattedVal.slice(0, 10);
 
                     setDob(formattedVal);
                     setError('');
@@ -111,10 +146,11 @@ export default function LoginScreen() {
             <ActionButtons
                 onPrimary={validateAndProceed}
                 onSecondary={() => router.back()}
-                primaryText={t('common.next')}
+                primaryText={isLoading ? 'Loading...' : t('common.next')}
                 secondaryText={t('common.back')}
-                primaryDisabled={!userId || !dob}
+                primaryDisabled={!userId || !dob || isLoading}
             />
         </KioskPage>
     );
 }
+

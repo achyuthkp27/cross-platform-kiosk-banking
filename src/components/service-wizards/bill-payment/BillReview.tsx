@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, Typography, Button, Grid, Card, CardContent, CircularProgress } from '@mui/material';
+import { Box, Typography, Button, Grid, Card, CardContent, CircularProgress, MenuItem, TextField } from '@mui/material';
 import { motion } from 'framer-motion';
 import { BillDetails } from '../../../hooks/service-wizards/useBillPayment';
+import { Account } from '../../../types/services';
 
 interface BillReviewProps {
     biller: string;
@@ -11,10 +12,13 @@ interface BillReviewProps {
     onBack: () => void;
     onConfirm: () => void;
     loading: boolean;
+    fromAccount: string;
+    setFromAccount: (acc: string) => void;
+    accounts: Account[];
 }
 
 export const BillReview: React.FC<BillReviewProps> = ({
-    biller, consumerNo, billDetails, isDark, onBack, onConfirm, loading
+    biller, consumerNo, billDetails, isDark, onBack, onConfirm, loading, fromAccount, setFromAccount, accounts
 }) => {
     return (
         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -42,6 +46,26 @@ export const BillReview: React.FC<BillReviewProps> = ({
                         <Grid size={12}>
                             <Typography variant="caption" color="text.secondary">Bill Amount</Typography>
                             <Typography variant="h3" color="primary" fontWeight="bold" sx={{ mt: 1 }}>${billDetails.amount}</Typography>
+                        </Grid>
+                        
+                        <Grid size={12}>
+                            <TextField
+                                select
+                                label="Pay From Account"
+                                value={fromAccount}
+                                onChange={(e) => setFromAccount(e.target.value)}
+                                fullWidth
+                                sx={{ 
+                                    mt: 2,
+                                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                                }}
+                            >
+                                {accounts.map((acc) => (
+                                    <MenuItem key={acc.accountNumber} value={acc.accountNumber}>
+                                        {acc.type} - {acc.accountNumber} (${acc.balance})
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Grid>
                     </Grid>
                 </CardContent>

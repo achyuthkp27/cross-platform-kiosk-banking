@@ -1,101 +1,108 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Card, CardStatus } from '../types/card';
+import { cardService } from '../services';
 
-const MOCK_CARDS: Card[] = [
-    {
-        id: 'c1',
-        number: '4532 **** **** 8890',
-        holderName: 'John Doe',
-        expiryDate: '12/28',
-        cvv: '123',
-        type: 'DEBIT',
-        network: 'VISA',
-        status: 'ACTIVE',
-        balance: 24500.50,
-        color: '#1A1F71' // Visa Blue
-    },
-    {
-        id: 'c2',
-        number: '5412 **** **** 3456',
-        holderName: 'John Doe',
-        expiryDate: '09/27',
-        cvv: '456',
-        type: 'CREDIT',
-        network: 'MASTERCARD',
-        status: 'ACTIVE',
-        limit: 150000,
-        used: 45200,
-        color: '#222222' // Premium Black
-    },
-    {
-        id: 'c3',
-        number: '6521 **** **** 9876',
-        holderName: 'John Doe',
-        expiryDate: '03/29',
-        cvv: '789',
-        type: 'CREDIT',
-        network: 'RUPAY',
-        status: 'BLOCKED',
-        limit: 50000,
-        used: 0,
-        color: '#C4262E' // RuPay brand colorish
-    }
-];
-
-export const useCardServices = () => {
-    const [cards, setCards] = useState<Card[]>(MOCK_CARDS);
-    const [selectedCard, setSelectedCard] = useState<Card | null>(MOCK_CARDS[0]);
+export const useCardServices = (customerId: string = 'current-user') => {
+    const [cards, setCards] = useState<Card[]>([]);
+    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const fetchCards = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await cardService.getCards(customerId);
+            if (response.success && response.data) {
+                setCards(response.data);
+                // Select first card by default if none selected
+                if (!selectedCard && response.data.length > 0) {
+                    setSelectedCard(response.data[0]);
+                }
+            } else {
+                setError(response.message || 'Failed to fetch cards');
+            }
+        } catch (e) {
+             setError('Failed to fetch cards');
+             console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, [customerId, selectedCard]);
+
+    // Initial load
+    useEffect(() => {
+        fetchCards();
+    }, [fetchCards]);
 
     const toggleCardStatus = useCallback(async (cardId: string, reason?: string) => {
         setLoading(true);
         setError(null);
 
-        // Simulate API call
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                setCards(prevCards => prevCards.map(card => {
-                    if (card.id === cardId) {
-                        const newStatus: CardStatus = card.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
-                        // Update selected card if it's the modified one
+        try {
+            const card = cards.find(c => c.id === cardId);
+            if (!card) throw new Error('Card not found');
+
+            const isBlocking = card.status === 'ACTIVE';
+            let success = false;
+
+            // Important: Service methods now return ApiResponse
+            if (isBlocking) {
+                const res = await cardService.blockCard(Number(cardId), reason || 'User Request');
+                success = res.success;
+            } else {
+                 const res = await cardService.unblockCard(Number(cardId));
+                 success = res.success;
+            }
+
+            if (success) {
+                 // Refresh or Optimistic Update
+                 // Doing optimistic update here for standard behavior, ideally fetchCards()
+                 setCards(prevCards => prevCards.map(c => {
+                    if (c.id === cardId) {
+                        const newStatus: CardStatus = isBlocking ? 'BLOCKED' : 'ACTIVE';
                         if (selectedCard?.id === cardId) {
-                            setSelectedCard({ ...card, status: newStatus });
+                            setSelectedCard({ ...c, status: newStatus });
                         }
-                        return { ...card, status: newStatus };
+                        return { ...c, status: newStatus };
                     }
-                    return card;
+                    return c;
                 }));
-                setLoading(false);
-                resolve();
-            }, 1500);
-        });
-    }, [selectedCard]);
+            } else {
+                setError('Operation failed');
+            }
+        } catch (e) {
+            setError('Failed to update card status');
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, [cards, selectedCard]);
 
     const updatePin = useCallback(async (cardId: string, newPin: string) => {
-        setLoading(true);
-        setError(null);
-
-        // Simulate API call
-        return new Promise<void>((resolve) => {
+         // Placeholder: Ideally this should call cardService.changePin if that existed.
+         // For now, retaining a brief simulation delay to match UI expectations
+         // as this method isn't in ICardService yet.
+         return new Promise<void>((resolve) => {
             setTimeout(() => {
-                console.log(`PIN updated for ${cardId}`);
                 setLoading(false);
                 resolve();
-            }, 2000);
+            }, 1000);
         });
     }, []);
 
     const requestReplacement = useCallback(async (cardId: string) => {
         setLoading(true);
-        // Simulate API call
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                console.log(`Replacement requested for ${cardId}`);
-                setLoading(false);
-                resolve();
-            }, 2000);
-        });
+        try {
+            const res = await cardService.replaceCard(Number(cardId), 'Damaged', 'Default Address');
+             if (!res.success) {
+                 setError(res.message || 'Failed to request replacement');
+             }
+        } catch (e) {
+            setError('Failed to request replacement');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     return {
@@ -106,6 +113,7 @@ export const useCardServices = () => {
         updatePin,
         requestReplacement,
         loading,
-        error
+        error,
+        fetchCards
     };
 };

@@ -116,6 +116,9 @@ export const translations = {
             logged_out: 'Logged out of Admin Console',
             search_logs: 'Search logs...',
         },
+        card: {
+            invalid_otp: 'Invalid OTP',
+        },
         errors: {
             invalid_otp: 'Invalid OTP. Please try again.',
             otp_expired: 'OTP has expired. Please request a new one.',
@@ -238,6 +241,9 @@ export const translations = {
             logged_out: 'Sesión cerrada',
             search_logs: 'Buscar registros...',
         },
+        card: {
+            invalid_otp: 'OTP inválido',
+        },
         errors: {
             invalid_otp: 'OTP inválido. Por favor, inténtelo de nuevo.',
             otp_expired: 'El OTP ha expirado. Por favor, solicite uno nuevo.',
@@ -359,6 +365,9 @@ export const translations = {
             error_pin: 'Ongeldige PIN',
             logged_out: 'Uitgelogd bij beheerdersconsole',
             search_logs: 'Logboeken zoeken...',
+        },
+        card: {
+            invalid_otp: 'Ongeldige OTP',
         },
         errors: {
             invalid_otp: 'Ongeldige OTP. Probeer het opnieuw.',

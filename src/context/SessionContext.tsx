@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'expo-router';
+import { configService } from '../services';
 
 interface SessionContextType {
     timeLeft: number;
@@ -9,6 +10,7 @@ interface SessionContextType {
     endSession: () => void;
     sessionDuration: number;
     setSessionDuration: (duration: number) => void;
+    configLoaded: boolean;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -23,24 +25,28 @@ export const useSession = () => {
 
 // Configuration
 const WARNING_THRESHOLD = 30; // Show warning when 30 seconds remain
+const DEFAULT_SESSION_DURATION = 300; // 5 minutes fallback
 
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const router = useRouter();
     const pathname = usePathname();
 
-    // Default to 5 minutes (300 seconds) if not set
+    // Get stored duration from localStorage or default
     const getStoredDuration = () => {
         if (typeof window !== 'undefined') {
             const stored = localStorage.getItem('kiosk_session_duration');
-            return stored ? parseInt(stored, 10) : 300;
+            return stored ? parseInt(stored, 10) : DEFAULT_SESSION_DURATION;
         }
-        return 300;
+        return DEFAULT_SESSION_DURATION;
     };
 
     const [sessionDuration, setSessionDurationState] = useState(getStoredDuration());
     const [timeLeft, setTimeLeft] = useState(sessionDuration);
-    const [isActive, setIsActive] = useState(false); // Active means a user is logged in
+    const [isActive, setIsActive] = useState(pathname !== '/');
     const [showWarning, setShowWarning] = useState(false);
+    const [configLoaded, setConfigLoaded] = useState(false);
+
+
 
     // Update localStorage when state changes
     const setSessionDuration = (seconds: number) => {
@@ -61,15 +67,51 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, [router, sessionDuration]);
 
     const resetSession = useCallback(() => {
-        // Only allow reset if specifically requested (e.g. from modal)
-        // NOT on activity anymore
         if (!isActive) return;
         setTimeLeft(sessionDuration);
         setShowWarning(false);
     }, [isActive, sessionDuration]);
 
+    // Fetch session timeout from backend on mount
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const timeout = await configService.getSessionTimeout();
+                if (timeout && timeout > 0) {
+                    setSessionDurationState(timeout);
+                    setTimeLeft(timeout);
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem('kiosk_session_duration', timeout.toString());
+                    }
+                    console.log(`[SessionContext] Loaded session timeout from config: ${timeout}s`);
+                }
+            } catch (error) {
+                console.warn('[SessionContext] Failed to fetch session config, using default:', error);
+            } finally {
+                setConfigLoaded(true);
+            }
+        };
+
+        fetchConfig();
+
+        // Listen for auth expiry (401/403) from apiClient
+        const handleAuthExpired = () => {
+             console.log('[SessionContext] Auth expired event received, ending session');
+             endSession();
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('kiosk:auth:expired', handleAuthExpired);
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('kiosk:auth:expired', handleAuthExpired);
+            }
+        };
+    }, [endSession]);
+
     // Handle route-based session activation
-    // Using ref comparison to avoid cascading renders
     useEffect(() => {
         const prevPathname = prevPathnameRef.current;
         prevPathnameRef.current = pathname;
@@ -107,8 +149,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return () => clearInterval(timer);
     }, [isActive, endSession]);
 
-    // OMITTED: Activity Listeners (removed per requirements)
-
     return (
         <SessionContext.Provider value={{
             timeLeft,
@@ -117,9 +157,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
             resetSession,
             endSession,
             sessionDuration,
-            setSessionDuration
+            setSessionDuration,
+            configLoaded
         }}>
             {children}
         </SessionContext.Provider>
     );
 };
+

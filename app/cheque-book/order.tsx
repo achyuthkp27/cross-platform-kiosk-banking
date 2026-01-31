@@ -1,32 +1,38 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, CircularProgress } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useThemeContext } from '../../src/context/ThemeContext';
+import { useToast } from '../../src/context/ToastContext';
+import { accountService, chequeBookService } from '../../src/services';
+import { Account } from '../../src/types/services';
 
 const steps = ['Select Account', 'Cheque Leaves', 'Delivery Address', 'Review'];
 
 export default function ChequeBookOrder() {
     const router = useRouter();
+    const params = useLocalSearchParams();
+    // Assuming userId is passed or we can get it from context/params. 
+    // If not passed, we might need to rely on a user context or session. 
+    // For now, let's assume it's passed or we redirect if missing (similar to Account Statement).
+    const userId = params.userId as string || 'USER001'; // Fallback for dev if not strict
 
     const { mode } = useThemeContext();
+    const { showSuccess, showError } = useToast();
     const isDark = mode === 'dark';
+    
     const [activeStep, setActiveStep] = useState(0);
-    const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [loadingAccounts, setLoadingAccounts] = useState(true);
+    const [selectedAccount, setSelectedAccount] = useState<number | null>(null); // Account ID is number
     const [selectedLeaves, setSelectedLeaves] = useState<number | null>(null);
     const [confirmed, setConfirmed] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-
-    const [refNo] = useState(() => `CB${Math.floor(Math.random() * 1000000)}`);
-
-    // Mock Data
-    const accounts = [
-        { id: '1', type: 'Savings Account', number: 'XXXX-XXXX-1234', balance: '$12,450.00' },
-        { id: '2', type: 'Current Account', number: 'XXXX-XXXX-5678', balance: '$45,200.50' }
-    ];
+    const [submitting, setSubmitting] = useState(false);
+    const [successData, setSuccessData] = useState<{ refNo: string; estimate: string } | null>(null);
 
     const leafOptions = [25, 50, 100];
     const [deliveryAddress, setDeliveryAddress] = useState({
@@ -36,6 +42,26 @@ export default function ChequeBookOrder() {
         pin: '500081'
     });
     const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const response = await accountService.getAccounts(userId);
+                if (response.success && response.data) {
+                    setAccounts(response.data);
+                } else {
+                    showError('Failed to load accounts');
+                }
+            } catch (error) {
+                console.error(error);
+                showError('Error loading accounts');
+            } finally {
+                setLoadingAccounts(false);
+            }
+        };
+
+        fetchAccounts();
+    }, [userId]);
 
     const handleNext = () => {
         if (activeStep === steps.length - 1) {
@@ -49,19 +75,52 @@ export default function ChequeBookOrder() {
         setActiveStep((prev) => prev - 1);
     };
 
-    const handleSubmit = () => {
-        setIsSuccess(true);
+    const handleSubmit = async () => {
+        if (!selectedAccount || !selectedLeaves) return;
+
+        setSubmitting(true);
+        try {
+            const response = await chequeBookService.requestChequeBook({
+                accountId: selectedAccount.toString(),
+                leaves: selectedLeaves,
+                deliveryAddress
+            });
+
+            if (response.success && response.data) {
+                setSuccessData({
+                    refNo: response.data.referenceId,
+                    estimate: response.data.deliveryEstimate
+                });
+                setIsSuccess(true);
+                showSuccess('Cheque book request submitted successfully!');
+            } else {
+                showError(response.message || 'Request failed');
+            }
+        } catch (error) {
+            console.error(error);
+            showError('An error occurred while submitting the request');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const isStepValid = () => {
         if (activeStep === 0) return !!selectedAccount;
         if (activeStep === 1) return !!selectedLeaves;
-        if (activeStep === 2) return true; // Address is pre-filled
+        if (activeStep === 2) return !!deliveryAddress.line1 && !!deliveryAddress.pin;
         if (activeStep === 3) return confirmed;
         return false;
     };
 
-    if (isSuccess) {
+    if (loadingAccounts) {
+        return (
+            <Box sx={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (isSuccess && successData) {
         return (
             <Box sx={{
                 height: '100vh',
@@ -81,10 +140,10 @@ export default function ChequeBookOrder() {
                 }}>
                     <SuccessState
                         message="Order Placed Successfully"
-                        subMessage={`Ref No: ${refNo}\nExpected Delivery: 3-5 Business Days`}
+                        subMessage={`Ref No: ${successData.refNo}\nExpected Delivery: ${successData.estimate}`}
                     />
                     <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-                        <Button fullWidth variant="outlined" size="large" onClick={() => { }}>Print Receipt</Button>
+                        <Button fullWidth variant="outlined" size="large" onClick={() => { window.print() }}>Print Receipt</Button>
                         <Button fullWidth variant="contained" size="large" onClick={() => router.push('/dashboard')}>Dashboard</Button>
                     </Box>
                 </Paper>
@@ -167,8 +226,8 @@ export default function ChequeBookOrder() {
                                                         <Typography variant="subtitle1" fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{acc.type}</Typography>
                                                         {selectedAccount === acc.id && <CheckCircleIcon color="primary" />}
                                                     </Box>
-                                                    <Typography variant="h5" sx={{ my: 1, color: isDark ? '#E2E8F0' : 'text.primary' }}>{acc.number}</Typography>
-                                                    <Typography variant="body2" color={isDark ? '#94A3B8' : 'text.secondary'}>Balance: {acc.balance}</Typography>
+                                                    <Typography variant="h5" sx={{ my: 1, color: isDark ? '#E2E8F0' : 'text.primary' }}>{acc.accountNumber}</Typography>
+                                                    <Typography variant="body2" color={isDark ? '#94A3B8' : 'text.secondary'}>Balance: ${acc.balance.toFixed(2)}</Typography>
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -280,7 +339,7 @@ export default function ChequeBookOrder() {
                                     }}>
                                         <Grid container spacing={2}>
                                             <Grid size={6}><Typography color={isDark ? '#94A3B8' : 'text.secondary'}>Account</Typography></Grid>
-                                            <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{accounts.find(a => a.id === selectedAccount)?.number}</Typography></Grid>
+                                            <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{accounts.find(a => a.id === selectedAccount)?.accountNumber}</Typography></Grid>
 
                                             <Grid size={6}><Typography color={isDark ? '#94A3B8' : 'text.secondary'}>Cheque Book Size</Typography></Grid>
                                             <Grid size={6}><Typography fontWeight="bold" color={isDark ? '#F8FAFC' : 'text.primary'}>{selectedLeaves} Leaves</Typography></Grid>
@@ -308,7 +367,7 @@ export default function ChequeBookOrder() {
                     {/* Actions */}
                     <Box sx={{ mt: 6, display: 'flex', justifyContent: 'space-between' }}>
                         <Button
-                            disabled={activeStep === 0}
+                            disabled={activeStep === 0 || submitting}
                             onClick={handleBack}
                             variant="outlined"
                             size="large"
@@ -331,11 +390,11 @@ export default function ChequeBookOrder() {
                         <Button
                             variant="contained"
                             onClick={handleNext}
-                            disabled={!isStepValid()}
+                            disabled={!isStepValid() || submitting}
                             size="large"
                             sx={{ minWidth: 120, borderRadius: 2 }}
                         >
-                            {activeStep === steps.length - 1 ? 'Confirm Order' : 'Next'}
+                            {submitting ? <CircularProgress size={24} color="inherit" /> : activeStep === steps.length - 1 ? 'Confirm Order' : 'Next'}
                         </Button>
                     </Box>
 

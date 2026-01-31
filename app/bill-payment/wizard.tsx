@@ -11,28 +11,46 @@ import { useBillPayment } from '../../src/hooks/service-wizards/useBillPayment';
 import { CategorySelection } from '../../src/components/service-wizards/bill-payment/CategorySelection';
 import { BillDetailsForm } from '../../src/components/service-wizards/bill-payment/BillDetailsForm';
 import { BillReview } from '../../src/components/service-wizards/bill-payment/BillReview';
+import { useDashboardData } from '../../src/hooks/useDashboardData';
+import { billPaymentService } from '../../src/services/billPaymentService';
 
 export default function BillPaymentWizard() {
     const router = useRouter();
     const { mode } = useThemeContext();
-    const { showSuccess } = useToast();
+    const { showSuccess, showError } = useToast();
     const isDark = mode === 'dark';
+    const { accounts } = useDashboardData();
 
     const {
         step, setStep, loading, setLoading, category, handleCategorySelect,
-        biller, setBiller, consumerNo, setConsumerNo, billDetails,
-        error, setError, mockTxnId, setMockTxnId, fetchBill
+        billers, biller, setBiller, consumerNo, setConsumerNo, billDetails,
+        error, setError, mockTxnId, setMockTxnId, fetchBill,
+        fromAccount, setFromAccount
     } = useBillPayment();
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
+        if (!fromAccount) {
+            showError('Please select an account to pay from');
+            return;
+        }
+        
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            const txnId = `BP${Date.now()}99`;
-            setMockTxnId(txnId);
-            showSuccess(`Bill paid successfully! Txn: ${txnId}`);
+        try {
+            const result = await billPaymentService.payBill({
+                billNo: billDetails?.billNo || '',
+                amount: billDetails?.amount || 0,
+                paymentMethod: 'ACCOUNT',
+                fromAccount: fromAccount
+            });
+            
+            setMockTxnId(result.data.txnId);
+            showSuccess(`Bill paid successfully! Txn: ${result.data.txnId}`);
             setStep(4);
-        }, 2000);
+        } catch (e: any) {
+            showError(e.message || 'Payment failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (step === 4) {
@@ -68,6 +86,7 @@ export default function BillPaymentWizard() {
                 {step === 2 && (
                     <BillDetailsForm
                         category={category}
+                        billers={billers}
                         biller={biller}
                         setBiller={setBiller}
                         consumerNo={consumerNo}
@@ -89,6 +108,9 @@ export default function BillPaymentWizard() {
                         onBack={() => setStep(2)}
                         onConfirm={handleConfirm}
                         loading={loading}
+                        fromAccount={fromAccount}
+                        setFromAccount={setFromAccount}
+                        accounts={accounts}
                     />
                 )}
             </AnimatePresence>

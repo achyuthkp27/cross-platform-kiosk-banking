@@ -7,6 +7,7 @@ interface KioskTextFieldProps extends Omit<TextFieldProps, 'value' | 'onChange'>
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     keyboardType?: 'default' | 'numeric';
+    maxLength?: number;
 }
 
 /**
@@ -19,6 +20,7 @@ export default function KioskTextField({
     onChange,
     keyboardType = 'default',
     label,
+    maxLength,
     ...props
 }: KioskTextFieldProps) {
     const theme = useTheme();
@@ -47,7 +49,7 @@ export default function KioskTextField({
             (newValue: string) => {
                 onChange({ target: { value: newValue } } as React.ChangeEvent<HTMLInputElement>);
             },
-            undefined,
+            maxLength,
             labelStr,
             fieldId
         );

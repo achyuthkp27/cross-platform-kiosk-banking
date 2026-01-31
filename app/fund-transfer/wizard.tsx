@@ -21,18 +21,13 @@ export default function FundTransferWizard() {
     const {
         step, setStep, loading, setLoading, form, setForm, errors,
         isNewBeneficiary, setIsNewBeneficiary, mockRefNo, setMockRefNo,
-        handleNext, handleBack, getBeneficiaryDetails
+        handleNext, handleBack, getBeneficiaryDetails, submitTransfer
     } = useFundTransfer();
 
-    const handleConfirm = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            const refNo = `FT${Date.now()}88`;
-            setMockRefNo(refNo);
-            showSuccess(`Transfer completed! Ref: ${refNo}`);
-            setStep(4);
-        }, 2000);
+    const handleConfirm = async () => {
+        // useFundTransfer hook's submitTransfer handles loading state, 
+        // service call, and step update on success.
+        await submitTransfer();
     };
 
     if (step === 4) {

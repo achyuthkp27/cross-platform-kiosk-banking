@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, CircularProgress, alpha, useTheme, IconButton, Modal, Stack, Divider } from '@mui/material';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { motion } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -10,30 +10,22 @@ import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useThemeContext } from '../../src/context/ThemeContext';
 import { useToast } from '../../src/context/ToastContext';
+import { accountService } from '../../src/services';
+import { Account, AccountStatement } from '../../src/types/services';
 
-// Mock Data with categories
-const MOCK_DATA = {
-    accountName: 'John Doe',
-    accountNumber: '**** **** **** 1234',
-    accountType: 'Savings Account',
-    balance: 12450.75,
-    transactions: [
-        { id: 1, date: '29/01/2026', desc: 'UPI Transfer - Walmart', category: 'Shopping', type: 'DEBIT', amount: 45.00 },
-        { id: 2, date: '28/01/2026', desc: 'Salary Credit - Acme Corp', category: 'Income', type: 'CREDIT', amount: 5000.00 },
-        { id: 3, date: '25/01/2026', desc: 'ATM Withdrawal', category: 'Cash', type: 'DEBIT', amount: 200.00 },
-        { id: 4, date: '22/01/2026', desc: 'Netflix Subscription', category: 'Entertainment', type: 'DEBIT', amount: 15.99 },
-        { id: 5, date: '20/01/2026', desc: 'Dividends - AAPL', category: 'Investment', type: 'CREDIT', amount: 120.50 },
-        { id: 6, date: '18/01/2026', desc: 'Uber Ride', category: 'Transport', type: 'DEBIT', amount: 24.50 },
-        { id: 7, date: '15/01/2026', desc: 'Electric Bill - BESCOM', category: 'Utilities', type: 'DEBIT', amount: 85.00 },
-        { id: 8, date: '12/01/2026', desc: 'Freelance Payment', category: 'Income', type: 'CREDIT', amount: 750.00 },
-        { id: 9, date: '10/01/2026', desc: 'Amazon Purchase', category: 'Shopping', type: 'DEBIT', amount: 129.99 },
-        { id: 10, date: '08/01/2026', desc: 'Interest Credit', category: 'Interest', type: 'CREDIT', amount: 42.30 },
-        { id: 11, date: '05/01/2026', desc: 'Gas Station - Shell', category: 'Transport', type: 'DEBIT', amount: 55.00 },
-        { id: 12, date: '02/01/2026', desc: 'Restaurant - Olive Garden', category: 'Food', type: 'DEBIT', amount: 78.50 },
-    ]
+const CATEGORIES = ['All', 'Shopping', 'Income', 'Cash', 'Entertainment', 'Investment', 'Transport', 'Utilities', 'Food', 'Interest', 'Others'];
+
+const deriveCategory = (desc: string): string => {
+    const d = desc.toLowerCase();
+    if (d.includes('salary') || d.includes('credit')) return 'Income';
+    if (d.includes('mart') || d.includes('store') || d.includes('amazon')) return 'Shopping';
+    if (d.includes('atm') || d.includes('cash')) return 'Cash';
+    if (d.includes('netflix') || d.includes('movie')) return 'Entertainment';
+    if (d.includes('uber') || d.includes('fuel')) return 'Transport';
+    if (d.includes('bill') || d.includes('bescom')) return 'Utilities';
+    if (d.includes('food') || d.includes('restaurant')) return 'Food';
+    return 'Others';
 };
-
-const CATEGORIES = ['All', 'Shopping', 'Income', 'Cash', 'Entertainment', 'Investment', 'Transport', 'Utilities', 'Food', 'Interest'];
 
 const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
     const [count, setCount] = useState(0);
@@ -60,33 +52,71 @@ const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
 
 export default function AccountStatementView() {
     const router = useRouter();
+    const { userId } = useLocalSearchParams();
     const theme = useTheme();
     const { mode } = useThemeContext();
-    const { showInfo } = useToast();
+    const { showInfo, showError } = useToast();
     const isDark = mode === 'dark';
+    
     const [loading, setLoading] = useState(true);
+    const [account, setAccount] = useState<Account | null>(null);
+    const [transactions, setTransactions] = useState<any[]>([]); // Using any for mapped UI data
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedTransaction, setSelectedTransaction] = useState<typeof MOCK_DATA.transactions[0] | null>(null);
+    const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!userId) {
+                showError('User ID missing. Redirecting...');
+                setTimeout(() => router.replace('/account-statement'), 2000);
+                return;
+            }
+
+            try {
+                // 1. Fetch Accounts
+                const accResponse = await accountService.getAccounts(userId as string);
+                if (!accResponse.success || !accResponse.data || accResponse.data.length === 0) {
+                    throw new Error(accResponse.message || 'No accounts found');
+                }
+
+                const primaryAccount = accResponse.data[0];
+                setAccount(primaryAccount);
+
+                // 2. Fetch Statement for primary account
+                const stmtResponse = await accountService.getStatement(primaryAccount.id);
+                if (stmtResponse.success && stmtResponse.data) {
+                    // Map API data to UI format
+                    const mappedData = stmtResponse.data.map((txn: AccountStatement) => ({
+                        id: txn.id,
+                        date: txn.txnDate, // Assuming format matches or use moment/date-fns locally
+                        desc: txn.description,
+                        category: deriveCategory(txn.description),
+                        type: txn.txnType,
+                        amount: txn.amount,
+                        txnId: txn.referenceId
+                    }));
+                    setTransactions(mappedData);
+                }
+            } catch (error) {
+                console.error('Failed to fetch data', error);
+                showError('Failed to load statement data. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [userId]);
 
     // Filter transactions based on category
     const filteredTransactions = selectedCategory === 'All'
-        ? MOCK_DATA.transactions
-        : MOCK_DATA.transactions.filter(t => t.category === selectedCategory);
+        ? transactions
+        : transactions.filter(t => t.category === selectedCategory);
 
-
-
-    // Print handler
     const handlePrint = () => {
         window.print();
         showInfo('Print dialog opened');
     };
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, []);
 
     if (loading) {
         return (
@@ -101,6 +131,15 @@ export default function AccountStatementView() {
                 transition: 'background 0.4s ease',
             }}>
                 <CircularProgress size={60} thickness={4} />
+            </Box>
+        );
+    }
+
+    if (!account) {
+        return (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h5">No Account Details Found</Typography>
+                <Button onClick={() => router.back()} sx={{ mt: 2 }}>Go Back</Button>
             </Box>
         );
     }
@@ -140,7 +179,7 @@ export default function AccountStatementView() {
                             Account Statement
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-                            Welcome back, {MOCK_DATA.accountName}
+                            User ID: {userId}
                         </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -230,7 +269,7 @@ export default function AccountStatementView() {
                                 Available Balance
                             </Typography>
                             <Typography variant="h2" sx={{ fontWeight: 800, mb: 4, letterSpacing: '-0.02em' }}>
-                                $<CountUp end={MOCK_DATA.balance} />
+                                $<CountUp end={account.balance} />
                             </Typography>
 
                             <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.2)', pt: 3, mt: 'auto' }}>
@@ -238,10 +277,10 @@ export default function AccountStatementView() {
                                     ACCOUNT NUMBER
                                 </Typography>
                                 <Typography variant="h6" sx={{ fontFamily: '"SF Mono", monospace', letterSpacing: 3, mb: 2 }}>
-                                    {MOCK_DATA.accountNumber}
+                                    {account.accountNumber}
                                 </Typography>
                                 <Chip
-                                    label={MOCK_DATA.accountType}
+                                    label={account.type}
                                     size="small"
                                     sx={{
                                         bgcolor: 'rgba(255,255,255,0.15)',
@@ -489,7 +528,7 @@ export default function AccountStatementView() {
                                     <Divider />
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <Typography variant="body2" color="text.secondary">Transaction ID</Typography>
-                                        <Typography variant="body2" fontFamily="'SF Mono', monospace">TXN{selectedTransaction.id}9923</Typography>
+                                        <Typography variant="body2" fontFamily="'SF Mono', monospace">{selectedTransaction.txnId ? `TXN${selectedTransaction.txnId}` : `TXN${selectedTransaction.id}`}</Typography>
                                     </Box>
                                 </Stack>
 

@@ -11,7 +11,8 @@ export interface UserIdEntryScreenProps {
     /** Subtitle/description text */
     subtitle?: string;
     /** Called when user proceeds with valid User ID */
-    onNext: (userId: string) => void;
+    /** Called when user proceeds with valid User ID. Can return a Promise. */
+    onNext: (userId: string) => Promise<void> | void;
     /** Called when back/cancel button is pressed */
     onBack?: () => void;
     /** Text for the primary button */
@@ -56,7 +57,9 @@ export default function UserIdEntryScreen({
     const resolvedSecondaryText = secondaryButtonText || t('common.cancel') || 'Cancel';
     const resolvedInputLabel = inputLabel || t('auth.user_id') || 'User ID';
 
-    const handleNext = () => {
+    const [loading, setLoading] = useState(false);
+
+    const handleNext = async () => {
         const trimmedUserId = userId.trim();
 
         if (!trimmedUserId) {
@@ -73,7 +76,15 @@ export default function UserIdEntryScreen({
             }
         }
 
-        onNext(trimmedUserId);
+        setLoading(true);
+        try {
+            await onNext(trimmedUserId);
+        } catch (error) {
+            console.error('Next action failed:', error);
+            // Error handling might be done by parent or we can show a general error here if needed
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -98,6 +109,7 @@ export default function UserIdEntryScreen({
                 error={!!error}
                 helperText={error}
                 placeholder={placeholder}
+                disabled={loading}
                 InputProps={{
                     style: { fontSize: '1.2rem' }
                 }}
@@ -109,7 +121,8 @@ export default function UserIdEntryScreen({
                 onSecondary={onBack}
                 primaryText={resolvedPrimaryText}
                 secondaryText={resolvedSecondaryText}
-                primaryDisabled={!userId.trim()}
+                primaryDisabled={!userId.trim() || loading}
+                loading={loading}
             />
         </KioskPage>
     );

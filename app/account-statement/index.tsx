@@ -2,17 +2,30 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '../../src/context/LanguageContext';
 import UserIdEntryScreen from '../../src/components/UserIdEntryScreen';
+import { otpService } from '../../src/services';
+import { useToast } from '../../src/context/ToastContext';
 
-/**
- * Account Statement User ID verification screen.
- * Now using the shared UserIdEntryScreen component for consistent behavior.
- */
 export default function AccountStatementAuth() {
     const router = useRouter();
     const { t } = useLanguage();
+    const { showError } = useToast();
 
-    const handleNext = (userId: string) => {
-        router.push({ pathname: '/account-statement/otp', params: { userId } });
+    const handleNext = async (userId: string) => {
+        try {
+            const response = await otpService.generate({
+                identifier: userId,
+                purpose: 'TRANSACTION' // or LOGIN depending on flow, usually TRANSACTION for viewing data
+            });
+
+            if (response.success) {
+                router.push({ pathname: '/account-statement/otp', params: { userId } });
+            } else {
+                showError(response.message || 'Failed to generate OTP');
+            }
+        } catch (error) {
+            console.error('OTP generation failed:', error);
+            showError('Failed to generate OTP. Please try again.');
+        }
     };
 
     return (

@@ -11,24 +11,31 @@ import ThemeToggle from '../src/components/theme/ThemeToggle';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { SessionTimeoutModal } from '../src/components/SessionTimeoutModal';
 import { AuditProvider } from '../src/context/AuditContext';
+import { DevTools } from '../src/components/dev/DevTools';
 
 export default function RootLayout() {
     const router = useRouter();
     const rootNavigationState = useRootNavigationState();
     const pathname = usePathname();
 
+    // Handle page refresh - redirect to landing page
     useEffect(() => {
-        // Logic disabled: Was preventing navigation to /login.
-        // Previously redirected to '/' if path was not '/' or '/admin'.
-        // if (rootNavigationState?.key) {
-        //     const timer = setTimeout(() => {
-        //         if (pathname !== '/' && !pathname.startsWith('/admin')) {
-        //             router.replace('/');
-        //         }
-        //     }, 50);
-        //     return () => clearTimeout(timer);
-        // }
-    }, [rootNavigationState?.key, pathname, router]);
+        if (typeof window !== 'undefined') {
+            // Check if this is a fresh page load (refresh or new tab)
+            const hasNavigated = sessionStorage.getItem('kiosk_has_navigated');
+
+            if (!hasNavigated) {
+                // First load in this session - mark as navigated and redirect to landing
+                sessionStorage.setItem('kiosk_has_navigated', 'true');
+
+                // If not already on landing page, redirect there
+                if (pathname !== '/') {
+                    console.log('[RootLayout] Page refresh detected, redirecting to landing page');
+                    router.replace('/');
+                }
+            }
+        }
+    }, [pathname, router]);
 
     return (
         <ErrorBoundary>
@@ -44,7 +51,9 @@ export default function RootLayout() {
                                     {pathname !== '/' && <ThemeToggle />}
                                     <VirtualKeyboard />
                                     <FloatingLanguageSwitcher />
+                                    <FloatingLanguageSwitcher />
                                     <SessionTimeoutModal />
+                                    <DevTools />
                                 </AuditProvider>
                             </SessionProvider>
                         </KeyboardProvider>

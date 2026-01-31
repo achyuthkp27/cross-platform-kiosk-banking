@@ -2,10 +2,11 @@ import React from 'react';
 import { Box, Typography, Button, MenuItem, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import KioskTextField from '../../KioskTextField';
-import { BILLERS } from '../../../hooks/service-wizards/useBillPayment';
+// Removed BILLERS import
 
 interface BillDetailsFormProps {
     category: string;
+    billers: string[];
     biller: string;
     setBiller: (value: string) => void;
     consumerNo: string;
@@ -18,7 +19,7 @@ interface BillDetailsFormProps {
 }
 
 export const BillDetailsForm: React.FC<BillDetailsFormProps> = ({
-    category, biller, setBiller, consumerNo, setConsumerNo,
+    category, billers, biller, setBiller, consumerNo, setConsumerNo,
     error, setError, fetchBill, loading, onBack
 }) => {
     return (
@@ -33,7 +34,7 @@ export const BillDetailsForm: React.FC<BillDetailsFormProps> = ({
                 onChange={(e) => { setBiller(e.target.value); setError(''); }}
                 sx={{ mb: 3 }}
             >
-                {BILLERS[category as keyof typeof BILLERS]?.map((b) => (
+                {billers.map((b) => (
                     <MenuItem key={b} value={b}>{b}</MenuItem>
                 ))}
             </KioskTextField>

@@ -7,6 +7,7 @@ import KioskPage from './KioskPage';
 import OTPFieldGroup from './OTPFieldGroup';
 import KioskTextField from './KioskTextField';
 import ActionButtons from './ActionButtons';
+import { otpService } from '../services';
 
 interface ReAuthScreenProps {
     onSuccess: () => void;
@@ -16,7 +17,7 @@ interface ReAuthScreenProps {
 /**
  * Re-authentication screen combining User ID entry and OTP verification.
  * Used for Bill Payment and Fund Transfer flows.
- * Now uses shared ActionButtons component for consistent styling.
+ * Uses the service abstraction layer for OTP generation/validation.
  */
 export default function ReAuthScreen({ onSuccess, title }: ReAuthScreenProps) {
     const router = useRouter();
@@ -36,40 +37,86 @@ export default function ReAuthScreen({ onSuccess, title }: ReAuthScreenProps) {
         return () => clearInterval(interval);
     }, [step, timer]);
 
-    const handleUserIdSubmit = () => {
+    const handleUserIdSubmit = async () => {
         if (!userId.trim()) {
             setError(t('auth.user_id_required') || 'User ID is required');
             return;
         }
         setLoading(true);
-        setTimeout(() => {
+        setError('');
+
+        try {
+            // Generate OTP via service layer (works in both REAL and MOCK modes)
+            const response = await otpService.generate({
+                identifier: userId,
+                purpose: 'TRANSACTION'
+            });
+
+            if (response.success) {
+                setStep('otp');
+                setTimer(60);
+            } else {
+                setError(response.message || 'Failed to send OTP');
+            }
+        } catch (err) {
+            setError('Failed to send OTP. Please try again.');
+            console.error('[ReAuthScreen] OTP generation error:', err);
+        } finally {
             setLoading(false);
-            setStep('otp');
-            setError('');
-            setTimer(60);
-        }, 1000);
+        }
     };
 
-    const handleVerify = (otpValue?: string) => {
+    const handleVerify = async (otpValue?: string) => {
         const finalOtp = otpValue || otp.join('');
         if (finalOtp.length !== 6) return;
 
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            if (finalOtp === '123456') {
+        setError('');
+
+        try {
+            // Validate OTP via service layer
+            const response = await otpService.validate({
+                identifier: userId,
+                code: finalOtp
+            });
+
+            if (response.success && response.data?.valid) {
                 onSuccess();
             } else {
-                setError('Invalid OTP. Please try again.');
+                setError(response.data?.message || response.message || 'Invalid OTP. Please try again.');
                 setOtp(['', '', '', '', '', '']);
             }
-        }, 1500);
+        } catch (err) {
+            setError('Verification failed. Please try again.');
+            console.error('[ReAuthScreen] OTP validation error:', err);
+            setOtp(['', '', '', '', '', '']);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleResend = () => {
-        setTimer(60);
-        setOtp(['', '', '', '', '', '']);
+    const handleResend = async () => {
+        setLoading(true);
         setError('');
+
+        try {
+            const response = await otpService.generate({
+                identifier: userId,
+                purpose: 'TRANSACTION'
+            });
+
+            if (response.success) {
+                setTimer(60);
+                setOtp(['', '', '', '', '', '']);
+            } else {
+                setError(response.message || 'Failed to resend OTP');
+            }
+        } catch (err) {
+            setError('Failed to resend OTP');
+            console.error('[ReAuthScreen] OTP resend error:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -145,7 +192,7 @@ export default function ReAuthScreen({ onSuccess, title }: ReAuthScreenProps) {
                                     {t('otp.resend_in') || 'Resend OTP in'} {timer}s
                                 </Typography>
                             ) : (
-                                <Button onClick={handleResend} variant="text" sx={{ fontWeight: 'bold' }}>
+                                <Button onClick={handleResend} variant="text" sx={{ fontWeight: 'bold' }} disabled={loading}>
                                     {t('otp.resend') || 'Resend OTP'}
                                 </Button>
                             )}
@@ -159,12 +206,15 @@ export default function ReAuthScreen({ onSuccess, title }: ReAuthScreenProps) {
                             primaryDisabled={otp.some(d => !d)}
                             loading={loading}
                         />
-                        <Typography variant="caption" display="block" sx={{ mt: 3, color: 'text.disabled' }}>
-                            (Use 123456 for demo)
-                        </Typography>
+                        {!loading && process.env.EXPO_PUBLIC_DATA_MODE !== 'REAL' && (
+                            <Typography variant="caption" display="block" sx={{ mt: 3, color: 'text.disabled' }}>
+                                (MOCK mode: use 123456)
+                            </Typography>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
         </KioskPage>
     );
 }
+
