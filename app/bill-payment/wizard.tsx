@@ -12,7 +12,7 @@ import { CategorySelection } from '../../src/components/service-wizards/bill-pay
 import { BillDetailsForm } from '../../src/components/service-wizards/bill-payment/BillDetailsForm';
 import { BillReview } from '../../src/components/service-wizards/bill-payment/BillReview';
 import { useDashboardData } from '../../src/hooks/useDashboardData';
-import { billPaymentService } from '../../src/services/billPaymentService';
+import { billPaymentService } from '../../src/services';
 
 export default function BillPaymentWizard() {
     const router = useRouter();
@@ -43,8 +43,9 @@ export default function BillPaymentWizard() {
                 fromAccount: fromAccount
             });
             
-            setMockTxnId(result.data.txnId);
-            showSuccess(`Bill paid successfully! Txn: ${result.data.txnId}`);
+            const txnId = result.data?.txnId || 'UNKNOWN';
+            setMockTxnId(txnId);
+            showSuccess(`Bill paid successfully! Txn: ${txnId}`);
             setStep(4);
         } catch (e: any) {
             showError(e.message || 'Payment failed');

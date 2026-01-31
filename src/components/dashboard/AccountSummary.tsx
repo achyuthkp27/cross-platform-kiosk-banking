@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Typography, Grid, Paper } from '@mui/material';
+import { Box, Typography, Grid, Paper, alpha, useTheme } from '@mui/material';
 import { motion, Variants } from 'framer-motion';
+import ParallaxCard from '../ui/ParallaxCard';
 
 import { Account as ServiceAccount } from '../../types/services';
 
@@ -52,37 +53,38 @@ export const AccountSummary: React.FC<AccountSummaryProps> = ({
                     </motion.div>
                 </Grid>
 
-                {/* Individual Account Cards */}
+                {/* Individual Account Cards with 3D Parallax */}
                 {accounts.map((account) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={account.id}>
                         <motion.div variants={itemVariants}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: 4,
-                                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
-                                    border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)'}`,
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                    <Box
-                                        sx={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: '50%',
-                                            bgcolor: account.color,
-                                            mr: 1,
-                                        }}
-                                    />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {account.type} • {account.accountNumber}
+                            <ParallaxCard intensity={10} glare elevation={4}>
+                                <Box
+                                    sx={{
+                                        p: 3,
+                                        borderRadius: 4,
+                                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                        <Box
+                                            sx={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: '50%',
+                                                bgcolor: account.color,
+                                                mr: 1,
+                                                boxShadow: `0 0 10px ${account.color}`,
+                                            }}
+                                        />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {account.type} • {account.accountNumber}
+                                        </Typography>
+                                    </Box>
+                                    <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>
+                                        ${account.balance.toLocaleString()}
                                     </Typography>
                                 </Box>
-                                <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>
-                                    ${account.balance.toLocaleString()}
-                                </Typography>
-                            </Paper>
+                            </ParallaxCard>
                         </motion.div>
                     </Grid>
                 ))}

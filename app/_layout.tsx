@@ -6,8 +6,7 @@ import VirtualKeyboard from '../src/components/keyboard/VirtualKeyboard';
 import { LanguageProvider } from '../src/context/LanguageContext';
 import { SessionProvider } from '../src/context/SessionContext';
 import { ToastProvider } from '../src/context/ToastContext';
-import FloatingLanguageSwitcher from '../src/components/language/FloatingLanguageSwitcher';
-import ThemeToggle from '../src/components/theme/ThemeToggle';
+
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { SessionTimeoutModal } from '../src/components/SessionTimeoutModal';
 import { AuditProvider } from '../src/context/AuditContext';
@@ -48,10 +47,8 @@ export default function RootLayout() {
                                     <Stack screenOptions={{ headerShown: false }}>
                                         <Stack.Screen name="index" />
                                     </Stack>
-                                    {pathname !== '/' && <ThemeToggle />}
                                     <VirtualKeyboard />
-                                    <FloatingLanguageSwitcher />
-                                    <FloatingLanguageSwitcher />
+
                                     <SessionTimeoutModal />
                                     <DevTools />
                                 </AuditProvider>

@@ -34,7 +34,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/auth/**", "/actuator/**", "/error", "/v1/health", "/v1/metrics")
+                        .requestMatchers(
+                                "/v1/auth/**",
+                                "/v1/config/**",
+                                "/v1/audit/**",
+                                "/actuator/**",
+                                "/error",
+                                "/v1/health",
+                                "/v1/metrics")
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -54,9 +61,19 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration obj = new CorsConfiguration();
-        obj.setAllowedOriginPatterns(List.of("*"));
+        obj.setAllowedOriginPatterns(List.of("*")); // TODO: Restrict to your domain in production
         obj.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        obj.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        // Explicit header whitelist (production-safe)
+        obj.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "Cache-Control",
+                "Idempotency-Key",
+                "X-Encryption-Mode", // Frontend sends this for E2E encryption
+                "X-Request-ID"));
+        obj.setExposedHeaders(List.of("X-Request-ID", "X-Rate-Limit-Remaining"));
         obj.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", obj);

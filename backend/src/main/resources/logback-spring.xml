@@ -35,7 +35,7 @@
         <appender-ref ref="FILE" />
     </root>
 
-    <!-- Detailed logging for our app -->
-    <logger name="com.kiosk.backend" level="DEBUG" />
+    <!-- App logging (use DEBUG only during development) -->
+    <logger name="com.kiosk.backend" level="INFO" />
 
 </configuration>

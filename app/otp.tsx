@@ -72,7 +72,8 @@ export default function OTPScreen() {
                 showSuccess(t('otp.verified') || 'OTP Verified!');
                 addLog('User Login Success', userId, { method: 'OTP' });
                 
-                // Clear pending data and navigate to dashboard
+                // Clear pending data and store user for dashboard, then navigate
+                sessionStorage.setItem('kiosk_userId', userId);
                 sessionStorage.removeItem('pendingUserId');
                 setTimeout(() => {
                     router.push('/dashboard');

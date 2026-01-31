@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Paper, alpha } from '@mui/material';
+import { Box, Typography, Grid, Paper, alpha, useTheme, useMediaQuery } from '@mui/material';
 import { motion, Variants } from 'framer-motion';
 import { SvgIconComponent } from '@mui/icons-material';
 
@@ -24,27 +24,31 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     isDark,
     itemVariants
 }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
     return (
         <>
-            <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}>
+            <Typography variant="h6" sx={{ mb: 2, mt: 3, color: 'text.secondary', fontWeight: 500 }}>
                 Quick Actions
             </Typography>
-            <Grid container spacing={4}>
+            <Grid container spacing={isMobile ? 2 : 3}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     return (
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={item.id}>
+                        <Grid size={{ xs: 6, sm: 6, md: 3 }} key={item.id}>
                             <motion.div variants={itemVariants}>
                                 <Paper
                                     elevation={0}
                                     onClick={() => onNavigate(item.path)}
                                     sx={{
-                                        height: 240,
+                                        height: isMobile ? 140 : isTablet ? 180 : 220,
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        borderRadius: 4,
+                                        borderRadius: isMobile ? 3 : 4,
                                         cursor: 'pointer',
                                         position: 'relative',
                                         overflow: 'hidden',
@@ -55,7 +59,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                                             : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
                                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         '&:hover': {
-                                            transform: 'translateY(-8px) scale(1.02)',
+                                            transform: isMobile ? 'scale(1.02)' : 'translateY(-8px) scale(1.02)',
                                             boxShadow: isDark
                                                 ? `0 20px 40px ${alpha(item.color, 0.3)}`
                                                 : `0 20px 40px ${alpha(item.color, 0.2)}`,
@@ -72,7 +76,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                                             }
                                         },
                                         '&:active': {
-                                            transform: 'translateY(-4px) scale(0.99)',
+                                            transform: 'scale(0.98)',
                                         }
                                     }}
                                 >
@@ -96,23 +100,25 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                                         className="tile-icon"
                                         sx={{
                                             color: isDark ? 'rgba(148, 163, 184, 0.8)' : 'text.secondary',
-                                            mb: 2,
+                                            mb: isMobile ? 1 : 2,
                                             transition: 'all 0.3s ease',
                                         }}
                                     >
-                                        <Icon sx={{ fontSize: 48 }} />
+                                        <Icon sx={{ fontSize: isMobile ? 32 : isTablet ? 40 : 48 }} />
                                     </Box>
 
                                     {/* Title */}
                                     <Typography
-                                        variant="h6"
+                                        variant={isMobile ? 'body2' : 'h6'}
                                         className="tile-title"
                                         sx={{
                                             fontWeight: 600,
                                             color: isDark ? '#F8FAFC' : 'text.primary',
                                             transition: 'color 0.3s ease',
                                             textAlign: 'center',
-                                            px: 2
+                                            px: 1,
+                                            fontSize: isMobile ? '0.8rem' : undefined,
+                                            lineHeight: 1.3,
                                         }}
                                     >
                                         {item.title}
@@ -125,7 +131,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
                                             bottom: 0,
                                             left: '20%',
                                             right: '20%',
-                                            height: 3,
+                                            height: isMobile ? 2 : 3,
                                             borderRadius: '3px 3px 0 0',
                                             background: item.color,
                                             opacity: 0.7,

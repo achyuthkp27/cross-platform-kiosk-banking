@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { Snackbar, AlertColor, Box, Typography, alpha } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -52,16 +52,66 @@ const getColors = (severity: AlertColor) => {
     }
 };
 
+// Audio feedback for toasts
+const playToastSound = (severity: AlertColor) => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+        const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Different tones for different severities
+        if (severity === 'success') {
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+        } else if (severity === 'error') {
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime + 0.15);
+        } else {
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+        }
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch {
+        // Audio not supported or blocked
+    }
+};
+
 interface ToastProviderProps {
     children: React.ReactNode;
 }
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const audioInitialized = useRef(false);
+
+    // Initialize audio on first user interaction
+    useEffect(() => {
+        const initAudio = () => {
+            audioInitialized.current = true;
+            document.removeEventListener('click', initAudio);
+        };
+        document.addEventListener('click', initAudio);
+        return () => document.removeEventListener('click', initAudio);
+    }, []);
 
     const showToast = useCallback((message: string, severity: AlertColor = 'info', duration: number = 4000) => {
         const id = Date.now().toString();
         setToasts(prev => [...prev, { id, message, severity, duration }]);
+        
+        // Play sound for success/error
+        if (audioInitialized.current && (severity === 'success' || severity === 'error')) {
+            playToastSound(severity);
+        }
     }, []);
 
     const showSuccess = useCallback((message: string, duration?: number) => {

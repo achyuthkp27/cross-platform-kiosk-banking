@@ -77,7 +77,7 @@ export default function Dashboard() {
             />
 
             {/* Main Content */}
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+            <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 }, flexGrow: 1 }}>
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"

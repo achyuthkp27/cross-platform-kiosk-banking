@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Button, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useThemeContext } from '../context/ThemeContext';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 
 interface ActionButtonsProps {
     onPrimary: () => void;
@@ -15,7 +16,7 @@ interface ActionButtonsProps {
 }
 
 /**
- * Premium action buttons with smooth press animations and sophisticated styling.
+ * Premium action buttons with smooth press animations, sound effects, and sophisticated styling.
  * Fully theme-aware for dark/light modes.
  */
 export default function ActionButtons({
@@ -30,6 +31,17 @@ export default function ActionButtons({
 }: ActionButtonsProps) {
     const { mode } = useThemeContext();
     const isDark = mode === 'dark';
+    const { playClick } = useSoundEffects();
+
+    const handlePrimaryClick = () => {
+        playClick();
+        onPrimary();
+    };
+
+    const handleSecondaryClick = () => {
+        playClick();
+        onSecondary?.();
+    };
 
     const buttonVariants = {
         rest: { scale: 1 },
@@ -60,7 +72,7 @@ export default function ActionButtons({
                     <Button
                         variant="outlined"
                         size="large"
-                        onClick={onSecondary}
+                        onClick={handleSecondaryClick}
                         disabled={secondaryDisabled || loading}
                         fullWidth={fullWidth}
                         aria-label={secondaryText}
@@ -103,7 +115,7 @@ export default function ActionButtons({
                 <Button
                     variant="contained"
                     size="large"
-                    onClick={onPrimary}
+                    onClick={handlePrimaryClick}
                     disabled={primaryDisabled || loading}
                     fullWidth={fullWidth}
                     aria-label={primaryText}

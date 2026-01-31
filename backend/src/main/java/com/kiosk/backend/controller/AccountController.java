@@ -1,7 +1,9 @@
 package com.kiosk.backend.controller;
 
 import com.kiosk.backend.entity.Account;
+import com.kiosk.backend.entity.AccountStatement;
 import com.kiosk.backend.service.AccountService;
+import com.kiosk.backend.repository.AccountStatementRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +17,11 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
+    private final AccountStatementRepository statementRepository;
 
-    public AccountController(AccountService accountService) {
+    public AccountController(AccountService accountService, AccountStatementRepository statementRepository) {
         this.accountService = accountService;
+        this.statementRepository = statementRepository;
     }
 
     /**
@@ -39,6 +43,21 @@ public class AccountController {
         } else {
             response.put("message", "Accounts fetched successfully");
         }
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get account statement (transactions) for an account
+     */
+    @GetMapping("/{accountId}/statement")
+    public ResponseEntity<Map<String, Object>> getAccountStatement(@PathVariable Long accountId) {
+        List<AccountStatement> statements = statementRepository.findByAccountIdOrderByTxnDateDesc(accountId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("data", statements);
+        response.put("message", statements.isEmpty() ? "No transactions found" : "Statement fetched successfully");
 
         return ResponseEntity.ok(response);
     }
