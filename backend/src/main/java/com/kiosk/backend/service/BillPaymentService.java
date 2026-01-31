@@ -17,12 +17,14 @@ public class BillPaymentService {
     private final BillerRepository billerRepository;
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
+    private final BillerIntegrationService billerIntegrationService;
 
     public BillPaymentService(BillerRepository billerRepository, TransactionRepository transactionRepository,
-            AccountService accountService) {
+            AccountService accountService, BillerIntegrationService billerIntegrationService) {
         this.billerRepository = billerRepository;
         this.transactionRepository = transactionRepository;
         this.accountService = accountService;
+        this.billerIntegrationService = billerIntegrationService;
     }
 
     public List<String> getBillersByCategory(String category) {
@@ -50,6 +52,10 @@ public class BillPaymentService {
         String detailsJson = String.format("{\"biller\": \"%s\", \"consumer\": \"%s\", \"fromAccount\": \"%s\"}",
                 billerName, consumerNo, fromAccount);
         txn.setDetails(detailsJson);
+
+        // 3. Call External Biller (Circuit Breaker Protected)
+        String externalRef = billerIntegrationService.payExternal(consumerNo, amount);
+        txn.setReferenceId(externalRef);
 
         return transactionRepository.save(txn);
     }

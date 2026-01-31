@@ -78,29 +78,39 @@ export const MOCK_CARDS: Record<string, Card[]> = {
     'DEMO001': [
         {
             id: 1,
-            cardNumberMasked: '**** **** **** 4532',
-            cardType: 'DEBIT',
-            cardNetwork: 'VISA',
-            expiryDate: '12/2028',
-            status: 'ACTIVE'
+            number: '4532 **** **** 8890',
+            type: 'DEBIT',
+            network: 'VISA',
+            expiryDate: '12/28',
+            status: 'ACTIVE',
+            holderName: 'John Demo',
+            balance: 24500.50,
+            color: '#1A1F71' // Visa Blue
         },
         {
             id: 2,
-            cardNumberMasked: '**** **** **** 8901',
-            cardType: 'CREDIT',
-            cardNetwork: 'MASTERCARD',
-            expiryDate: '06/2027',
-            status: 'ACTIVE'
+            number: '5412 **** **** 3456',
+            type: 'CREDIT',
+            network: 'MASTERCARD',
+            expiryDate: '09/27',
+            status: 'ACTIVE',
+            holderName: 'John Demo',
+            limit: 150000,
+            used: 45200,
+            color: '#222222' // Premium Black
         }
     ],
     'TEST001': [
         {
             id: 3,
-            cardNumberMasked: '**** **** **** 1111',
-            cardType: 'DEBIT',
-            cardNetwork: 'RUPAY',
-            expiryDate: '03/2026',
-            status: 'ACTIVE'
+            number: '6521 **** **** 9876',
+            type: 'DEBIT',
+            network: 'RUPAY',
+            expiryDate: '03/26',
+            status: 'ACTIVE',
+            holderName: 'Test User',
+            balance: 5000.00,
+            color: '#C4262E' // RuPay Red
         }
     ]
 };

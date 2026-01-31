@@ -35,9 +35,11 @@ export const useCardServices = (customerId: string = 'current-user') => {
         fetchCards();
     }, [fetchCards]);
 
-    const toggleCardStatus = useCallback(async (cardId: string, reason?: string) => {
+    const toggleCardStatus = useCallback(async (cardIdInput: string | number, reason?: string) => {
         setLoading(true);
         setError(null);
+        
+        const cardId = Number(cardIdInput);
 
         try {
             const card = cards.find(c => c.id === cardId);
@@ -48,10 +50,10 @@ export const useCardServices = (customerId: string = 'current-user') => {
 
             // Important: Service methods now return ApiResponse
             if (isBlocking) {
-                const res = await cardService.blockCard(Number(cardId), reason || 'User Request');
+                const res = await cardService.blockCard(cardId, reason || 'User Request');
                 success = res.success;
             } else {
-                 const res = await cardService.unblockCard(Number(cardId));
+                 const res = await cardService.unblockCard(cardId);
                  success = res.success;
             }
 
@@ -79,7 +81,7 @@ export const useCardServices = (customerId: string = 'current-user') => {
         }
     }, [cards, selectedCard]);
 
-    const updatePin = useCallback(async (cardId: string, newPin: string) => {
+    const updatePin = useCallback(async (cardIdInput: string | number, newPin: string) => {
          // Placeholder: Ideally this should call cardService.changePin if that existed.
          // For now, retaining a brief simulation delay to match UI expectations
          // as this method isn't in ICardService yet.
@@ -91,10 +93,11 @@ export const useCardServices = (customerId: string = 'current-user') => {
         });
     }, []);
 
-    const requestReplacement = useCallback(async (cardId: string) => {
+    const requestReplacement = useCallback(async (cardIdInput: string | number) => {
         setLoading(true);
+        const cardId = Number(cardIdInput);
         try {
-            const res = await cardService.replaceCard(Number(cardId), 'Damaged', 'Default Address');
+            const res = await cardService.replaceCard(cardId, 'Damaged', 'Default Address');
              if (!res.success) {
                  setError(res.message || 'Failed to request replacement');
              }

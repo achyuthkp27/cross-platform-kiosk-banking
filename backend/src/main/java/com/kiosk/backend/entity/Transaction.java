@@ -16,6 +16,7 @@ public class Transaction {
     private BigDecimal amount;
     private String status;
     private String details; // storing JSON as string for simplicity in basic setup
+    private String referenceId;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     // Getters and Setters
@@ -65,6 +66,14 @@ public class Transaction {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public LocalDateTime getCreatedAt() {

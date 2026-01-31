@@ -111,18 +111,18 @@ export interface AccountStatement {
 // Let's migrate the Service type to support the fields needed by the UI.
 
 export interface Card {
-    id: string; // Changed from number to string to match UI
+    id: number; // Back to number to match backend/mockData
     number: string; // Changed from cardNumberMasked
-    holderName: string;
+    holderName?: string; // Optional if backend doesn't send it immediately
     expiryDate: string; // MM/YY
-    cvv: string;
+    cvv?: string; // Often not sent for security
     type: 'DEBIT' | 'CREDIT'; // Changed from cardType
     network: 'VISA' | 'MASTERCARD' | 'RUPAY'; // Changed from cardNetwork
     status: 'ACTIVE' | 'BLOCKED' | 'FROZEN'; // Added FROZEN
     balance?: number; // For Debit
     limit?: number;   // For Credit
     used?: number;    // For Credit
-    color: string;    // Visually distinct color for UI
+    color?: string;    // Visually distinct color for UI
 }
 
 // =====================================================
