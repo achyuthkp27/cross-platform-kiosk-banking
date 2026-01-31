@@ -13,9 +13,7 @@ export const cardApi: ICardService = {
     },
 
     async unblockCard(cardId: number): Promise<ApiResponse<void>> {
-        // Mock success as backend unblock is not implemented yet
-        console.warn('Backend unblock not implemented, returning mock success');
-        return { success: true, message: 'Card unblocked' };
+        return apiClient.post(`/cards/${cardId}/unblock`, {});
     },
 
     async replaceCard(cardId: number, reason: string, address: string): Promise<ApiResponse<{ referenceId: string; deliveryEstimate: string }>> {

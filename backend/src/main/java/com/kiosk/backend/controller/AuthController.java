@@ -161,9 +161,9 @@ public class AuthController {
             return ResponseEntity.status(401).build();
 
         // Normalize userId
-        final String normalizedUserId = java.util.Objects.requireNonNull(userId).toUpperCase();
-
-        authService.updatePreferences(java.util.Objects.requireNonNull(normalizedUserId), language, theme);
+        final String normalizedUserId = java.util.Objects
+                .requireNonNull(java.util.Objects.requireNonNull(userId).toUpperCase());
+        authService.updatePreferences(normalizedUserId, language, theme);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -197,7 +197,8 @@ public class AuthController {
             org.springframework.security.core.Authentication authentication) {
         String userId = (String) authentication.getPrincipal();
         final String nonNullUserId = java.util.Objects.requireNonNull(userId);
-        Optional<Customer> customerOpt = authService.getCustomer(nonNullUserId.toUpperCase());
+        Optional<Customer> customerOpt = authService
+                .getCustomer(java.util.Objects.requireNonNull(nonNullUserId.toUpperCase()));
 
         Map<String, Object> response = new HashMap<>();
         if (customerOpt.isPresent()) {

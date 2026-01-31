@@ -74,6 +74,8 @@ export default function Dashboard() {
                 ? 'linear-gradient(135deg, #020617 0%, #0F172A 50%, #020617 100%)'
                 : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 50%, #F1F5F9 100%)',
             transition: 'background 0.4s ease',
+            overflowY: 'auto', // Ensure content is scrollable if it exceeds viewport
+            WebkitOverflowScrolling: 'touch',
         }}>
             {/* Header */}
             <DashboardHeader
@@ -102,6 +104,7 @@ export default function Dashboard() {
                                 totalBalance={totalBalance}
                                 isDark={isDark}
                                 itemVariants={itemVariants}
+                                onAccountClick={() => handleNavigate('/account-statement')}
                             />
 
                             {/* Quick Actions */}

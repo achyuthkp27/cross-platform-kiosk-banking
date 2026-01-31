@@ -14,81 +14,187 @@ interface AccountSummaryProps {
     totalBalance: number;
     isDark: boolean;
     itemVariants: Variants;
+    onAccountClick?: (accountId: string) => void;
 }
+
+const CardChip = () => (
+    <Box
+        sx={{
+            width: 40,
+            height: 30,
+            borderRadius: 1,
+            background: 'linear-gradient(135deg, #d4af37 0%, #f9f295 50%, #d4af37 100%)',
+            position: 'relative',
+            mb: 2,
+            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2)',
+            '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-120%, -50%)',
+                width: '1px',
+                height: '70%',
+                bgcolor: 'rgba(0,0,0,0.1)'
+            }
+        }}
+    />
+);
 
 export const AccountSummary: React.FC<AccountSummaryProps> = ({
     accounts,
     totalBalance,
     isDark,
-    itemVariants
+    itemVariants,
+    onAccountClick
 }) => {
     return (
-        <Box sx={{ mb: 5 }}>
-            <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary', fontWeight: 500 }}>
-                Account Summary
-            </Typography>
-            <Grid container spacing={3}>
-                {/* Total Balance Card */}
-                <Grid size={{ xs: 12, md: 4 }}>
+        <Box sx={{ mb: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '-0.02em', color: isDark ? 'white' : 'text.primary' }}>
+                    Account Summary
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                    Total: <Box component="span" sx={{ color: isDark ? 'primary.light' : 'primary.main', fontWeight: 700 }}>${totalBalance.toLocaleString()}</Box>
+                </Typography>
+            </Box>
+            
+            <Box 
+                sx={{ 
+                    display: 'flex', 
+                    gap: { xs: 2, md: 4 }, 
+                    overflowX: 'auto', 
+                    pb: 4, 
+                    px: 1,
+                    mx: -1,
+                    cursor: 'grab',
+                    scrollSnapType: 'x proximity',
+                    '&:active': { cursor: 'grabbing' },
+                    '::-webkit-scrollbar': {
+                        height: '4px',
+                    },
+                    '::-webkit-scrollbar-track': {
+                        background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                        borderRadius: '10px',
+                    },
+                    '::-webkit-scrollbar-thumb': {
+                        background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        borderRadius: '10px',
+                    },
+                }}
+            >
+                {/* Total Balance Card - Specialized Design */}
+                <Box sx={{ flexShrink: 0, width: { xs: '320px', sm: '380px' }, scrollSnapAlign: 'start' }}>
                     <motion.div variants={itemVariants}>
                         <Paper
-                            elevation={0}
+                            elevation={10}
                             sx={{
-                                p: 3,
-                                borderRadius: 4,
+                                p: 4,
+                                height: 220,
+                                borderRadius: 6,
                                 background: isDark
-                                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)'
-                                    : 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                                    ? 'linear-gradient(225deg, #1e293b 0%, #0f172a 100%)'
+                                    : 'linear-gradient(225deg, #3b82f6 0%, #1e3a8a 100%)',
                                 border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'transparent'}`,
-                                color: isDark ? 'white' : 'white',
+                                color: 'white',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between'
                             }}
                         >
-                            <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
-                                Total Balance
-                            </Typography>
-                            <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: '"SF Mono", monospace' }}>
-                                ${totalBalance.toLocaleString()}
-                            </Typography>
+                            {/* Decorative Background Elements */}
+                            <Box sx={{ 
+                                position: 'absolute', top: -50, right: -50, width: 200, height: 200, 
+                                borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none' 
+                            }} />
+                            
+                            <Box>
+                                <Typography variant="overline" sx={{ opacity: 0.6, letterSpacing: 2, fontWeight: 600 }}>
+                                    Net Liquid Assets
+                                </Typography>
+                                <Typography variant="h3" sx={{ fontWeight: 800, fontFamily: '"Outfit", sans-serif', mt: 1 }}>
+                                    ${totalBalance.toLocaleString()}
+                                </Typography>
+                            </Box>
+                            
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                <Box>
+                                    <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>
+                                        PLATINUM MEMBER
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: 1 }}>
+                                        TOTAL ASSETS
+                                    </Typography>
+                                </Box>
+                                <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 900, opacity: 0.5 }}>
+                                    VISA
+                                </Box>
+                            </Box>
                         </Paper>
                     </motion.div>
-                </Grid>
+                </Box>
 
-                {/* Individual Account Cards with 3D Parallax */}
+                {/* Individual Account Cards */}
                 {accounts.map((account) => (
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={account.id}>
-                        <motion.div variants={itemVariants}>
-                            <ParallaxCard intensity={10} glare elevation={4}>
+                    <Box 
+                        key={account.id} 
+                        sx={{ flexShrink: 0, width: { xs: '300px', sm: '340px' }, scrollSnapAlign: 'start' }}
+                    >
+                        <motion.div 
+                            variants={itemVariants} 
+                            onClick={() => onAccountClick && onAccountClick(account.accountNumber)}
+                        >
+                            <ParallaxCard intensity={15} glare elevation={6} sx={{ cursor: 'pointer', borderRadius: 6 }}>
                                 <Box
                                     sx={{
-                                        p: 3,
-                                        borderRadius: 4,
-                                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                                        p: 4,
+                                        height: 220,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                        <Box
-                                            sx={{
-                                                width: 10,
-                                                height: 10,
-                                                borderRadius: '50%',
-                                                bgcolor: account.color,
-                                                mr: 1,
-                                                boxShadow: `0 0 10px ${account.color}`,
-                                            }}
-                                        />
-                                        <Typography variant="body2" color="text.secondary">
-                                            {account.type} • {account.accountNumber}
+                                    <Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <CardChip />
+                                            <Box
+                                                sx={{
+                                                    px: 1.5,
+                                                    py: 0.5,
+                                                    borderRadius: 2,
+                                                    background: alpha(account.color, 0.1),
+                                                    border: `1px solid ${alpha(account.color, 0.2)}`,
+                                                }}
+                                            >
+                                                <Typography variant="caption" sx={{ fontWeight: 700, color: account.color, textTransform: 'uppercase' }}>
+                                                    {account.type}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary', letterSpacing: 3, mt: 1 }}>
+                                            •••• •••• •••• {account.accountNumber.slice(-4)}
                                         </Typography>
                                     </Box>
-                                    <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>
-                                        ${account.balance.toLocaleString()}
-                                    </Typography>
+
+                                    <Box>
+                                        <Typography variant="h4" sx={{ fontWeight: 700, fontFamily: '"Outfit", sans-serif' }}>
+                                            ${account.balance.toLocaleString()}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                            AVAILABLE BALANCE
+                                        </Typography>
+                                    </Box>
                                 </Box>
                             </ParallaxCard>
                         </motion.div>
-                    </Grid>
+                    </Box>
                 ))}
-            </Grid>
+            </Box>
         </Box>
     );
 };

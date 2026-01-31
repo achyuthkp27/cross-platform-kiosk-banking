@@ -19,12 +19,13 @@ export default function CardActionPage() {
 
     const card = cards.find(c => String(c.id) === String(cardId));
 
-    // Redirect if invalid access
+    // Redirect if invalid access - wait for cards to load first
     useEffect(() => {
-        if (!card && !loading) {
+        if (cards.length > 0 && !loading && !card) {
+            console.log('[DEBUG] Card not found after loading, redirecting...', { cardId, cardsCount: cards.length });
             router.replace('/card-services');
         }
-    }, [card, loading, router]);
+    }, [card, loading, cards.length, router]);
 
     if (!card) return null;
 

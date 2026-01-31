@@ -3,6 +3,7 @@ import { Box, Typography, Button, TextField, FormControl, FormLabel } from '@mui
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useKeyboard } from '../../context/KeyboardContext';
 import { otpService } from '../../services';
 import OTPFieldGroup from '../OTPFieldGroup';
 import SuccessState from '../SuccessState';
@@ -24,7 +25,8 @@ interface PinChangeFormProps {
 const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loading }) => {
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const [step, setStep] = useState(STEPS.OTP); // Start at OTP for now as per previous flow
+    const { showKeyboard, hideKeyboard } = useKeyboard();
+    const [step, setStep] = useState(STEPS.OTP);
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [newPin, setNewPin] = useState('');
     const [confirmPin, setConfirmPin] = useState('');
@@ -96,6 +98,7 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
             setError('PINs do not match');
             return;
         }
+        hideKeyboard();
         onComplete(newPin);
     };
 
@@ -124,7 +127,10 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                         {generatingOtp && <Typography variant="caption">Sending OTP...</Typography>}
                         {verifyingOtp && <Typography variant="caption">Verifying...</Typography>}
 
-                        <Button onClick={onCancel} sx={{ mt: 4 }}>Cancel</Button>
+                        <Button onClick={() => {
+                            hideKeyboard();
+                            onCancel();
+                        }} sx={{ mt: 4 }}>Cancel</Button>
                     </motion.div>
                 )}
 
@@ -141,6 +147,8 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                         </Typography>
 
                         <TextField
+                            key="new-pin-input"
+                            autoFocus
                             type="password"
                             variant="outlined"
                             value={newPin}
@@ -150,9 +158,20 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                                     setError('');
                                 }
                             }}
+                            onFocus={() => {
+                                console.log('[DEBUG] New PIN focused');
+                                showKeyboard(
+                                    'numeric',
+                                    newPin,
+                                    (v) => setNewPin(v),
+                                    4,
+                                    'New PIN'
+                                );
+                            }}
+                            onBlur={() => hideKeyboard()}
                             fullWidth
                             label="New PIN"
-                            inputProps={{ maxLength: 4, style: { textAlign: 'center', letterSpacing: '1em' } }}
+                            inputProps={{ maxLength: 4, style: { textAlign: 'center', letterSpacing: '1em' }, inputMode: 'none' }}
                             error={!!error}
                             helperText={error}
                             sx={{ mb: 3 }}
@@ -184,6 +203,8 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                         </Typography>
 
                         <TextField
+                            key="confirm-pin-input"
+                            autoFocus
                             type="password"
                             variant="outlined"
                             value={confirmPin}
@@ -193,9 +214,20 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                                     setError('');
                                 }
                             }}
+                            onFocus={() => {
+                                console.log('[DEBUG] Confirm PIN focused');
+                                showKeyboard(
+                                    'numeric',
+                                    confirmPin,
+                                    (v) => setConfirmPin(v),
+                                    4,
+                                    'Confirm PIN'
+                                );
+                            }}
+                            onBlur={() => hideKeyboard()}
                             fullWidth
                             label="Confirm PIN"
-                            inputProps={{ maxLength: 4, style: { textAlign: 'center', letterSpacing: '1em' } }}
+                            inputProps={{ maxLength: 4, style: { textAlign: 'center', letterSpacing: '1em' }, inputMode: 'none' }}
                             error={!!error}
                             helperText={error}
                             sx={{ mb: 3 }}

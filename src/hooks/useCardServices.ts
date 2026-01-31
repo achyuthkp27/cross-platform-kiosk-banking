@@ -37,9 +37,9 @@ export const useCardServices = (customerId: string = 'current-user') => {
                     return {
                         ...card,
                         expiryDate: expiry,
-                        holderName: card.holderName || (sessionStorage.getItem('userName') || 'VALUED CUSTOMER'),
+                        holderName: card.holderName || sessionStorage.getItem('userName') || 'Demo User',
                         network: card.network || (num.startsWith('4') ? 'VISA' : 'MASTERCARD'),
-                        color: card.color || (card.type === 'CREDIT' ? '#111827' : '#0369a1') // Darker for credit, Blue for debit
+                        color: card.color || (String(card.type).toUpperCase() === 'CREDIT' ? '#111827' : '#0369a1') // Darker for credit, Blue for debit
                     };
                 });
                 
@@ -69,11 +69,16 @@ export const useCardServices = (customerId: string = 'current-user') => {
         setError(null);
         
         const cardId = Number(cardIdInput);
+        console.log('[DEBUG] toggleCardStatus called for cardId:', cardId);
 
         try {
             const card = cards.find(c => c.id === cardId);
-            if (!card) throw new Error('Card not found');
+            if (!card) {
+                console.error('[DEBUG] Card not found in local state for ID:', cardId);
+                throw new Error('Card not found');
+            }
 
+            console.log('[DEBUG] Current card status:', card.status);
             const isBlocking = card.status === 'ACTIVE';
             let success = false;
 

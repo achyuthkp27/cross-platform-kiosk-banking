@@ -36,6 +36,17 @@ public class CardService {
     }
 
     @Transactional
+    public Card unblockCard(@NonNull Long cardId) {
+        Optional<Card> cardOpt = cardRepository.findById(cardId);
+        if (cardOpt.isPresent()) {
+            Card card = cardOpt.get();
+            card.setStatus("ACTIVE");
+            return cardRepository.save(card);
+        }
+        throw new RuntimeException("Card not found");
+    }
+
+    @Transactional
     public Card requestNewCard(String userId, Long accountId, String type) {
         Card card = new Card();
         card.setUserId(userId);

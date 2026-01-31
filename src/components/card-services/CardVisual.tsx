@@ -32,7 +32,6 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
 
     return (
         <motion.div
-            layout // Enable layout animation for smooth sorting/movement
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{
                 scale: isSelected ? 1.05 : 0.95,
@@ -95,8 +94,9 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
                         <Typography variant="caption" sx={{ 
                             color: 'rgba(255,255,255,0.9)', 
                             fontWeight: 'bold', 
-                            fontSize: '0.7rem',
-                            letterSpacing: '0.05em'
+                            fontSize: '0.75rem',
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase'
                         }}>
                             {card.type} CARD
                         </Typography>

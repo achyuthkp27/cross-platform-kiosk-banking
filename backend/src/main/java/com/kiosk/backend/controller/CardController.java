@@ -40,12 +40,29 @@ public class CardController {
 
     @PostMapping("/{cardId}/block")
     public ResponseEntity<Map<String, Object>> blockCard(@PathVariable Long cardId) {
+        final Long nonNullCardId = java.util.Objects.requireNonNull(cardId);
         // Todo: Verify card belongs to authentication.getPrincipal()
         try {
-            Card card = service.blockCard(cardId);
+            Card card = service.blockCard(nonNullCardId);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Card blocked successfully",
+                    "data", card));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{cardId}/unblock")
+    public ResponseEntity<Map<String, Object>> unblockCard(@PathVariable Long cardId) {
+        final Long nonNullCardId = java.util.Objects.requireNonNull(cardId);
+        try {
+            Card card = service.unblockCard(nonNullCardId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Card unblocked successfully",
                     "data", card));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(

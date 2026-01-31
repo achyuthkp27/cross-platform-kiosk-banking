@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Paper } from '@mui/material';
 import { motion } from 'framer-motion';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import PinIcon from '@mui/icons-material/Pin'; // Or equivalent
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import BlockIcon from '@mui/icons-material/Block';
 import { Card } from '../../types/card';
@@ -31,7 +31,7 @@ const ActionGrid: React.FC<ActionGridProps> = ({ card, onAction, isDark }) => {
         {
             id: 'change-pin',
             label: 'Change PIN',
-            icon: PinIcon, // Using Pin as placeholder or use VpnKey
+            icon: VpnKeyIcon, 
             action: 'PIN' as CardAction,
             color: '#FFD93D',
             desc: 'Set a new secure PIN'

@@ -82,6 +82,8 @@ export default function KioskPage({ children, maxWidth = 700, noPaper = false }:
                 py: 4,
                 px: 2,
                 transition: 'background 0.4s ease',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
             }}
         >
             <Container

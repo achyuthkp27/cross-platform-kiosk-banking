@@ -16,25 +16,31 @@ const CardCarousel: React.FC<CardCarouselProps> = ({ cards, selectedCard, onSele
                 display: 'flex',
                 overflowX: 'auto',
                 overflowY: 'hidden',
-                py: 4,
-                px: 2,
-                gap: 2,
+                py: 6,
+                px: 4,
+                gap: 3,
                 scrollBehavior: 'smooth',
                 width: '100%',
+                scrollSnapType: 'x mandatory',
                 justifyContent: cards.length < 3 ? 'center' : 'flex-start',
-                '::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar for cleaner look
-                msOverflowStyle: 'none',  // IE and Edge
-                scrollbarWidth: 'none',  // Firefox
-                maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+                '::-webkit-scrollbar': { display: 'none' }, 
+                msOverflowStyle: 'none',  
+                scrollbarWidth: 'none',
+                WebkitOverflowScrolling: 'touch',
+                // Remove maskImage as it can interfere with pointer events on some browsers
             }}
         >
             {cards.map((card) => (
-                <CardVisual
-                    key={card.id}
-                    card={card}
-                    isSelected={selectedCard?.id === card.id}
-                    onClick={() => onSelect(card)}
-                />
+                <Box key={card.id} sx={{ scrollSnapAlign: 'center', flexShrink: 0 }}>
+                    <CardVisual
+                        card={card}
+                        isSelected={selectedCard?.id === card.id}
+                        onClick={() => {
+                            console.log('[DEBUG] Card clicked:', card.id);
+                            onSelect(card);
+                        }}
+                    />
+                </Box>
             ))}
         </Box>
     );

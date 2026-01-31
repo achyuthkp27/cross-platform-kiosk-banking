@@ -31,10 +31,9 @@ export default function CardServicesDashboard() {
                 break;
         }
 
-        router.push({
-            pathname: `/card-services/${routeAction}`,
-            params: { cardId: selectedCard.id }
-        });
+        const path = `/card-services/${routeAction}?cardId=${selectedCard.id}`;
+        console.log('[DEBUG] Navigating to card action:', { action, path, cardId: selectedCard.id });
+        router.push(path);
     };
 
     return (
