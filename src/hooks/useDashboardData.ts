@@ -10,7 +10,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 
 export const useDashboardData = () => {
     const { t } = useLanguage();
-    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [accounts, setAccounts] = useState<(Account & { color: string })[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

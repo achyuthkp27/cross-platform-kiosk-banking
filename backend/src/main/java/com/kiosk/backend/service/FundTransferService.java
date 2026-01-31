@@ -2,8 +2,8 @@ package com.kiosk.backend.service;
 
 import com.kiosk.backend.entity.Transaction;
 import com.kiosk.backend.repository.TransactionRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ public class FundTransferService {
 
     @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
     public Transaction processTransfer(String beneficiaryName, String accountNumber, String ifsc, BigDecimal amount,
-            String fromAccount) {
+            @NonNull String fromAccount) {
         // 1. Debit from Sender
         // Description: Transfer to {Name} ({Account})
         String description = String.format("Transfer to %s", beneficiaryName);

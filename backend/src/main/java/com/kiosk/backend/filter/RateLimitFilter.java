@@ -38,6 +38,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (isAuthEndpoint(request)) {
             String clientIp = getClientIp(request);
+            if (clientIp == null) {
+                clientIp = "UNKNOWN";
+            }
             Bucket tokenBucket = rateLimitService.resolveBucket(clientIp);
             ConsumptionProbe probe = tokenBucket.tryConsumeAndReturnRemaining(1);
 
@@ -90,7 +93,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {
-            return request.getRemoteAddr();
+            String remoteAddr = request.getRemoteAddr();
+            return remoteAddr != null ? remoteAddr : "UNKNOWN";
         }
         return xfHeader.split(",")[0];
     }

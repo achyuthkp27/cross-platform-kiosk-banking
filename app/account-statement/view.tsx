@@ -12,6 +12,7 @@ import { useThemeContext } from '../../src/context/ThemeContext';
 import { useToast } from '../../src/context/ToastContext';
 import { accountService } from '../../src/services';
 import { Account, AccountStatement } from '../../src/types/services';
+import SkeletonLoader from '../../src/components/SkeletonLoader';
 
 const CATEGORIES = ['All', 'Shopping', 'Income', 'Cash', 'Entertainment', 'Investment', 'Transport', 'Utilities', 'Food', 'Interest', 'Others'];
 
@@ -121,16 +122,28 @@ export default function AccountStatementView() {
     if (loading) {
         return (
             <Box sx={{
-                height: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                minHeight: '100vh',
+                p: { xs: 2, md: 4 },
                 background: isDark
                     ? 'linear-gradient(135deg, #020617 0%, #0F172A 100%)'
                     : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
-                transition: 'background 0.4s ease',
             }}>
-                <CircularProgress size={60} thickness={4} />
+                {/* Header Skeleton */}
+                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                    <SkeletonLoader variant="form" />
+                </Box>
+
+                <Grid container spacing={4}>
+                    {/* Account Details Skeleton */}
+                    <Grid size={{ xs: 12, md: 4 }}>
+                        <SkeletonLoader variant="card" />
+                    </Grid>
+
+                    {/* Transactions List Skeleton */}
+                    <Grid size={{ xs: 12, md: 8 }}>
+                        <SkeletonLoader variant="list" count={6} />
+                    </Grid>
+                </Grid>
             </Box>
         );
     }

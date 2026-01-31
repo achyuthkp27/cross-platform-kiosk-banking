@@ -8,6 +8,7 @@ import com.kiosk.backend.repository.OtpRecordRepository;
 import com.kiosk.backend.repository.UsedOtpRepository;
 import com.kiosk.backend.util.TotpUtility;
 import org.apache.commons.codec.binary.Base32;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +88,7 @@ public class OtpService {
      * Validate an OTP using strict bank-grade checks
      */
     @Transactional
-    public OtpValidationResult validateOtp(String identifier, String userCode) {
+    public OtpValidationResult validateOtp(@NonNull String identifier, String userCode) {
         // 1. Check Lockout
         Optional<OtpAttempt> attemptOpt = otpAttemptRepository.findById(identifier);
         if (attemptOpt.isPresent()) {
@@ -163,7 +164,7 @@ public class OtpService {
         return new OtpValidationResult(true, "OTP validated successfully");
     }
 
-    private void recordFailure(String userId) {
+    private void recordFailure(@NonNull String userId) {
         OtpAttempt attempt = otpAttemptRepository.findById(userId).orElse(new OtpAttempt());
         attempt.setUserId(userId);
         attempt.setFailedAttempts(attempt.getFailedAttempts() + 1);
@@ -175,7 +176,7 @@ public class OtpService {
         otpAttemptRepository.save(attempt);
     }
 
-    private void resetAttempts(String userId) {
+    private void resetAttempts(@NonNull String userId) {
         otpAttemptRepository.findById(userId).ifPresent(attempt -> {
             attempt.setFailedAttempts(0);
             attempt.setLockedUntil(null);

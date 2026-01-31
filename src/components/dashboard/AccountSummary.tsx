@@ -2,11 +2,9 @@ import React from 'react';
 import { Box, Typography, Grid, Paper } from '@mui/material';
 import { motion, Variants } from 'framer-motion';
 
-interface Account {
-    id: number;
-    type: string;
-    number: string;
-    balance: number;
+import { Account as ServiceAccount } from '../../types/services';
+
+interface Account extends ServiceAccount {
     color: string;
 }
 
@@ -78,7 +76,7 @@ export const AccountSummary: React.FC<AccountSummaryProps> = ({
                                         }}
                                     />
                                     <Typography variant="body2" color="text.secondary">
-                                        {account.type} • {account.number}
+                                        {account.type} • {account.accountNumber}
                                     </Typography>
                                 </Box>
                                 <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: '"SF Mono", monospace' }}>

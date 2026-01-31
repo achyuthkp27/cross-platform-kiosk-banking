@@ -44,8 +44,13 @@ public class BillPaymentController {
 
     @PostMapping("/pay")
     public ApiResponse<PaymentResponse> payBill(@RequestBody BillPaymentRequest request) {
+        String fromAccount = request.getFromAccount();
+        if (fromAccount == null) {
+            return ApiResponse.error("Source account is required");
+        }
+
         Transaction txn = service.processPayment("Unknown", request.getAmount(), request.getBillNo(),
-                request.getFromAccount());
+                fromAccount);
 
         PaymentResponse response = new PaymentResponse(txn.getId());
         return ApiResponse.success(response);

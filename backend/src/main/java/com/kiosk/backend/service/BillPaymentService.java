@@ -2,10 +2,10 @@ package com.kiosk.backend.service;
 
 import com.kiosk.backend.entity.Biller;
 import com.kiosk.backend.entity.Transaction;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import com.kiosk.backend.repository.BillerRepository;
 import com.kiosk.backend.repository.TransactionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +35,8 @@ public class BillPaymentService {
     }
 
     @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
-    public Transaction processPayment(String billerName, BigDecimal amount, String consumerNo, String fromAccount) {
+    public Transaction processPayment(String billerName, BigDecimal amount, String consumerNo,
+            @NonNull String fromAccount) {
         // 1. Debit Account
         String description = "Bill Pay: " + consumerNo;
         String txnId = UUID.randomUUID().toString();

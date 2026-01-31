@@ -9,13 +9,14 @@ import { useDashboardData } from '../src/hooks/useDashboardData';
 import { DashboardHeader } from '../src/components/dashboard/DashboardHeader';
 import { AccountSummary } from '../src/components/dashboard/AccountSummary';
 import { QuickActions } from '../src/components/dashboard/QuickActions';
+import SkeletonLoader from '../src/components/SkeletonLoader';
 
 export default function Dashboard() {
     const router = useRouter();
     const { t } = useLanguage();
     const { mode } = useThemeContext();
     const { timeLeft, endSession } = useSession();
-    const { menuItems, accounts, totalBalance } = useDashboardData();
+    const { menuItems, accounts, totalBalance, loading } = useDashboardData();
 
     const isDark = mode === 'dark';
 
@@ -83,21 +84,27 @@ export default function Dashboard() {
                     animate="visible"
                     style={{ width: '100%' }}
                 >
-                    {/* Account Balance Summary */}
-                    <AccountSummary
-                        accounts={accounts}
-                        totalBalance={totalBalance}
-                        isDark={isDark}
-                        itemVariants={itemVariants}
-                    />
+                    {loading ? (
+                        <SkeletonLoader variant="dashboard" />
+                    ) : (
+                        <>
+                            {/* Account Balance Summary */}
+                            <AccountSummary
+                                accounts={accounts}
+                                totalBalance={totalBalance}
+                                isDark={isDark}
+                                itemVariants={itemVariants}
+                            />
 
-                    {/* Quick Actions */}
-                    <QuickActions
-                        menuItems={menuItems}
-                        onNavigate={handleNavigate}
-                        isDark={isDark}
-                        itemVariants={itemVariants}
-                    />
+                            {/* Quick Actions */}
+                            <QuickActions
+                                menuItems={menuItems}
+                                onNavigate={handleNavigate}
+                                isDark={isDark}
+                                itemVariants={itemVariants}
+                            />
+                        </>
+                    )}
                 </motion.div>
             </Container>
         </Box>

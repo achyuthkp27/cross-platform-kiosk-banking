@@ -9,10 +9,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Base64;
 
 @Service
@@ -22,7 +19,6 @@ public class CryptoService {
     private String masterSecret;
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
-    private static final int AES_KEY_SIZE = 256;
     private static final int GCM_TAG_LENGTH = 128;
     private static final int SALT_LENGTH = 16;
     private static final int IV_LENGTH = 12;

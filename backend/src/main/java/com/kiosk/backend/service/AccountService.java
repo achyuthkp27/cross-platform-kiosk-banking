@@ -6,6 +6,7 @@ import com.kiosk.backend.entity.AccountStatement;
 import com.kiosk.backend.repository.AccountRepository;
 import com.kiosk.backend.repository.AccountStatementRepository;
 import com.kiosk.backend.repository.CustomerRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,7 +31,7 @@ public class AccountService {
     /**
      * Get all accounts for a user by their User ID (e.g. DEMO001)
      */
-    public List<Account> getAccountsByUserId(String userId) {
+    public List<Account> getAccountsByUserId(@NonNull String userId) {
         Optional<Customer> customerOpt = customerRepository.findByUserId(userId);
 
         if (customerOpt.isEmpty()) {
@@ -43,7 +44,7 @@ public class AccountService {
     /**
      * Get account by account number
      */
-    public Optional<Account> getAccountByNumber(String accountNumber) {
+    public Optional<Account> getAccountByNumber(@NonNull String accountNumber) {
         return accountRepository.findByAccountNumber(accountNumber);
     }
 
@@ -51,7 +52,8 @@ public class AccountService {
      * Debit an account and create a statement entry
      * Returns updated Account or throws exception
      */
-    public Account debitAccount(String accountNumber, BigDecimal amount, String description, String referenceId) {
+    public Account debitAccount(@NonNull String accountNumber, BigDecimal amount, String description,
+            String referenceId) {
         Optional<Account> accountOpt = accountRepository.findByAccountNumber(accountNumber);
 
         if (accountOpt.isEmpty()) {

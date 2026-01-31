@@ -58,7 +58,8 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ApiError> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex,
                         HttpServletRequest request) {
                 String requestId = MDC.get("requestId");
-                String typeName = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "Unknown";
+                Class<?> requiredType = ex.getRequiredType();
+                String typeName = requiredType != null ? requiredType.getSimpleName() : "Unknown";
                 String message = String.format("The parameter '%s' of value '%s' could not be converted to type '%s'",
                                 ex.getName(), ex.getValue(), typeName);
 

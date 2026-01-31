@@ -25,6 +25,9 @@ public class AccountController {
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAccounts(@RequestParam String customerId) {
+        if (customerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
         List<Account> accounts = accountService.getAccountsByUserId(customerId);
 
         Map<String, Object> response = new HashMap<>();

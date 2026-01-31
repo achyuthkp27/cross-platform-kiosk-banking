@@ -29,7 +29,12 @@ public class OtpController {
 
     @PostMapping("/validate")
     public ApiResponse<OtpValidateResponse> validate(@RequestBody OtpValidateRequest request) {
-        OtpService.OtpValidationResult result = otpService.validateOtp(request.getIdentifier(), request.getCode());
+        String identifier = request.getIdentifier();
+        if (identifier == null) {
+            return ApiResponse.error("Identifier is required");
+        }
+
+        OtpService.OtpValidationResult result = otpService.validateOtp(identifier, request.getCode());
 
         OtpValidateResponse data = new OtpValidateResponse(result.isValid(), result.getMessage());
         return ApiResponse.success(data, result.getMessage());

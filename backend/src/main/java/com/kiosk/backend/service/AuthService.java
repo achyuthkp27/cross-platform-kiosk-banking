@@ -4,6 +4,7 @@ import com.kiosk.backend.entity.Customer;
 import com.kiosk.backend.repository.CustomerRepository;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class AuthService {
      * 
      * @return Customer if valid, empty if invalid
      */
-    public Optional<Customer> authenticateCustomer(String userId, String dob) {
+    public Optional<Customer> authenticateCustomer(@NonNull String userId, String dob) {
         Optional<Customer> customerOpt = customerRepository.findByUserId(userId);
 
         if (customerOpt.isEmpty()) {
@@ -65,7 +66,7 @@ public class AuthService {
     /**
      * Validate customer PIN for transactions
      */
-    public boolean validatePin(String userId, String pin) {
+    public boolean validatePin(@NonNull String userId, String pin) {
         Optional<Customer> customerOpt = customerRepository.findByUserId(userId);
 
         if (customerOpt.isEmpty()) {
@@ -97,7 +98,7 @@ public class AuthService {
     /**
      * Change customer PIN
      */
-    public boolean changePin(String userId, String oldPin, String newPin) {
+    public boolean changePin(@NonNull String userId, String oldPin, String newPin) {
         Optional<Customer> customerOpt = customerRepository.findByUserId(userId);
 
         if (customerOpt.isEmpty()) {
@@ -120,14 +121,14 @@ public class AuthService {
     /**
      * Get customer by user ID
      */
-    public Optional<Customer> getCustomer(String userId) {
+    public Optional<Customer> getCustomer(@NonNull String userId) {
         return customerRepository.findByUserId(userId);
     }
 
     /**
      * Update customer preferences
      */
-    public void updatePreferences(String userId, String language, String theme) {
+    public void updatePreferences(@NonNull String userId, String language, String theme) {
         customerRepository.findByUserId(userId).ifPresent(customer -> {
             if (language != null)
                 customer.setLanguagePref(language);

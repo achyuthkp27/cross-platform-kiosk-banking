@@ -26,7 +26,15 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "output": "static",
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "Kiosk Banking",
+      "shortName": "Kiosk",
+      "display": "standalone",
+      "startUrl": "/",
+      "backgroundColor": "#ffffff",
+      "themeColor": "#0F172A",
+      "description": "Premium Kiosk Banking Experience",
+      "orientation": "portrait"
     },
     "experiments": {},
     "plugins": [

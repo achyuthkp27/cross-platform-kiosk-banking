@@ -34,12 +34,17 @@ public class FundTransferController {
 
     @PostMapping("/process")
     public ApiResponse<TransferResponse> processTransfer(@RequestBody FundTransferRequest request) {
+        String fromAccount = request.getFromAccount();
+        if (fromAccount == null) {
+            return ApiResponse.error("Source account is required");
+        }
+
         Transaction txn = service.processTransfer(
                 request.getBeneficiaryName(),
                 request.getAccountNumber(),
                 request.getIfsc(),
                 request.getAmount(),
-                request.getFromAccount());
+                fromAccount);
 
         TransferResponse data = new TransferResponse(txn.getId(), txn.getStatus());
         return ApiResponse.success(data);
