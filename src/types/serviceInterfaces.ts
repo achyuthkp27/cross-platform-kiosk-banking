@@ -77,6 +77,7 @@ export interface ICardService {
     blockCard(cardId: number, reason: string): Promise<ApiResponse<{ referenceId: string }>>;
     unblockCard(cardId: number): Promise<ApiResponse<void>>;
     replaceCard(cardId: number, reason: string, address: string): Promise<ApiResponse<{ referenceId: string; deliveryEstimate: string }>>;
+    requestNewCard(accountId: number, type: string): Promise<ApiResponse<Card>>;
 }
 
 // =====================================================
@@ -85,7 +86,9 @@ export interface ICardService {
 
 export interface IFundTransferService {
     validateRecipient(accountNumber: string, ifsc: string): Promise<ApiResponse<{ valid: boolean; name?: string }>>;
-    processTransfer(recipient: TransferRecipient, amount: number, fromAccount: string): Promise<ApiResponse<TransferResult>>;
+    processTransfer(recipient: TransferRecipient, amount: number, fromAccount: string, idempotencyKey?: string): Promise<ApiResponse<TransferResult>>;
+    getBeneficiaries(): Promise<ApiResponse<{ id: string; name: string; account: string; ifsc: string }[]>>;
+    addBeneficiary(name: string, account: string, ifsc: string): Promise<ApiResponse<{ id: string; name: string; account: string; ifsc: string }>>;
 }
 
 // =====================================================

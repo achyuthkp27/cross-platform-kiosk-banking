@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
@@ -29,7 +30,8 @@ public class EncryptionFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         logger.debug("EncryptionFilter STARTING for {}", request.getRequestURI());
@@ -77,10 +79,10 @@ public class EncryptionFilter extends OncePerRequestFilter {
                     // Use OutputStream to avoid conflict if downstream used it
                     response.getOutputStream().write(objectMapper.writeValueAsBytes(encryptedResponse));
                 }
+            } else {
+                // 6. Copy content to original response
+                responseWrapper.copyBodyToResponse();
             }
-
-            // 6. Copy content to original response
-            responseWrapper.copyBodyToResponse();
 
         } catch (Throwable e) {
             logger.error("ENCRYPTION FILTER ERROR", e);
@@ -100,7 +102,7 @@ public class EncryptionFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         // Skip for OPTIONS (CORS) or specific paths if needed
         return "OPTIONS".equalsIgnoreCase(request.getMethod());
     }

@@ -42,6 +42,9 @@ export default function KioskTextField({
 
     const handleFocus = () => {
         setIsFocused(true);
+        // Don't show custom keyboard for select fields
+        if (props.select) return;
+
         const labelStr = typeof label === 'string' ? label : 'Input';
         showKeyboard(
             keyboardType,

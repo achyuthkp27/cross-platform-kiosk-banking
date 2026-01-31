@@ -7,6 +7,12 @@ import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
+    // Case-insensitive lookup for userId
+    Optional<Customer> findByUserIdIgnoreCase(String userId);
+
+    boolean existsByUserIdIgnoreCase(String userId);
+
+    // Keep original for internal use if needed
     Optional<Customer> findByUserId(String userId);
 
     boolean existsByUserId(String userId);

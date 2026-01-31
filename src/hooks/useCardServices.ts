@@ -9,15 +9,44 @@ export const useCardServices = (customerId: string = 'current-user') => {
     const [error, setError] = useState<string | null>(null);
 
     const fetchCards = useCallback(async () => {
+        let activeUserId = customerId;
+        if (activeUserId === 'current-user' && typeof window !== 'undefined') {
+            const storedId = sessionStorage.getItem('kiosk_userId');
+            if (storedId) activeUserId = storedId;
+        }
+
+        if (activeUserId === 'current-user' || !activeUserId) {
+            console.warn('No userId available for fetching cards');
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const response = await cardService.getCards(customerId);
+            const response = await cardService.getCards(activeUserId);
             if (response.success && response.data) {
-                setCards(response.data);
+                // Enrich backend data with UI-only fields if missing
+                const enrichedCards = response.data.map(card => {
+                    const num = card.number || '';
+                    // Format expiry date if it's in YYYY-MM-DD
+                    let expiry = card.expiryDate;
+                    if (expiry && expiry.includes('-')) {
+                        const [y, m] = expiry.split('-');
+                        expiry = `${m}/${y.slice(-2)}`;
+                    }
+                    return {
+                        ...card,
+                        expiryDate: expiry,
+                        holderName: card.holderName || (sessionStorage.getItem('userName') || 'VALUED CUSTOMER'),
+                        network: card.network || (num.startsWith('4') ? 'VISA' : 'MASTERCARD'),
+                        color: card.color || (card.type === 'CREDIT' ? '#111827' : '#0369a1') // Darker for credit, Blue for debit
+                    };
+                });
+                
+                setCards(enrichedCards);
                 // Select first card by default if none selected
-                if (!selectedCard && response.data.length > 0) {
-                    setSelectedCard(response.data[0]);
+                if (!selectedCard && enrichedCards.length > 0) {
+                    setSelectedCard(enrichedCards[0]);
                 }
             } else {
                 setError(response.message || 'Failed to fetch cards');
@@ -28,7 +57,7 @@ export const useCardServices = (customerId: string = 'current-user') => {
         } finally {
             setLoading(false);
         }
-    }, [customerId, selectedCard]);
+    }, [customerId]);
 
     // Initial load
     useEffect(() => {
@@ -108,6 +137,22 @@ export const useCardServices = (customerId: string = 'current-user') => {
         }
     }, []);
 
+    const requestNewCard = useCallback(async (accountId: number, type: string) => {
+        setLoading(true);
+        try {
+            const res = await cardService.requestNewCard(accountId, type);
+            if (res.success) {
+                await fetchCards(); // Refresh list to show new card
+            } else {
+                setError(res.message || 'Failed to request new card');
+            }
+        } catch (e) {
+            setError('Failed to request new card');
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchCards]);
+
     return {
         cards,
         selectedCard,
@@ -115,6 +160,7 @@ export const useCardServices = (customerId: string = 'current-user') => {
         toggleCardStatus,
         updatePin,
         requestReplacement,
+        requestNewCard, // Exposed
         loading,
         error,
         fetchCards

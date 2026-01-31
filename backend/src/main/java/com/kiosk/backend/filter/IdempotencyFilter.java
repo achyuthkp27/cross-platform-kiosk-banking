@@ -41,6 +41,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // Check if key exists
         Optional<IdempotencyRecord> recordOpt = idempotencyRepository.findByKey(key);
         if (recordOpt.isPresent()) {
+            logger.info("Idempotency hit for key: " + key);
             IdempotencyRecord record = recordOpt.get();
             response.setStatus(record.getStatus());
             response.setContentType("application/json");
@@ -48,6 +49,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             response.setHeader("X-Idempotency-Hit", "true");
             return;
         }
+
+        logger.info("Idempotency miss for key: " + key + ". Processing request...");
 
         // If not, wrap response, proceed, and save
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);

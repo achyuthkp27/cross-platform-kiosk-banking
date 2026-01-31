@@ -20,6 +20,9 @@ export default function RootLayout() {
     // Handle page refresh - redirect to landing page
     useEffect(() => {
         if (typeof window !== 'undefined') {
+            // Force title update for Web
+            document.title = "Kiosk Banking";
+
             // Check if this is a fresh page load (refresh or new tab)
             const hasNavigated = sessionStorage.getItem('kiosk_has_navigated');
 
@@ -44,8 +47,19 @@ export default function RootLayout() {
                         <KeyboardProvider>
                             <SessionProvider>
                                 <AuditProvider>
-                                    <Stack screenOptions={{ headerShown: false }}>
-                                        <Stack.Screen name="index" />
+                                    <Stack screenOptions={{ headerShown: false, title: 'Kiosk Banking' }}>
+                                        <Stack.Screen name="index" options={{ title: 'Kiosk Banking - Welcome' }} />
+                                        <Stack.Screen name="login" options={{ title: 'Kiosk Banking - Login' }} />
+                                        <Stack.Screen name="otp" options={{ title: 'Kiosk Banking - OTP Verification' }} />
+                                        <Stack.Screen name="dashboard" options={{ title: 'Kiosk Banking - Dashboard' }} />
+                                        
+                                        {/* Service Routes */}
+                                        <Stack.Screen name="fund-transfer" options={{ title: 'Kiosk Banking - Fund Transfer' }} />
+                                        <Stack.Screen name="bill-payment" options={{ title: 'Kiosk Banking - Bill Payment' }} />
+                                        <Stack.Screen name="card-services" options={{ title: 'Kiosk Banking - Card Services' }} />
+                                        <Stack.Screen name="cheque-book" options={{ title: 'Kiosk Banking - Cheque Book' }} />
+                                        <Stack.Screen name="account-statement" options={{ title: 'Kiosk Banking - Account Statement' }} />
+                                        <Stack.Screen name="admin" options={{ title: 'Kiosk Banking - Admin' }} />
                                     </Stack>
                                     <VirtualKeyboard />
 

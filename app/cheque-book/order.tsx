@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Paper, Grid, Stepper, Step, StepLabel, Card, CardContent, Divider, Checkbox, FormControlLabel, CircularProgress } from '@mui/material';
 import KioskTextField from '../../src/components/KioskTextField';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessState from '../../src/components/SuccessState';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -14,11 +14,9 @@ const steps = ['Select Account', 'Cheque Leaves', 'Delivery Address', 'Review'];
 
 export default function ChequeBookOrder() {
     const router = useRouter();
-    const params = useLocalSearchParams();
-    // Assuming userId is passed or we can get it from context/params. 
-    // If not passed, we might need to rely on a user context or session. 
-    // For now, let's assume it's passed or we redirect if missing (similar to Account Statement).
-    const userId = params.userId as string || 'USER001'; // Fallback for dev if not strict
+    
+    // Security: Get userId from sessionStorage, NOT URL params
+    const [userId, setUserId] = useState<string>('');
 
     const { mode } = useThemeContext();
     const { showSuccess, showError } = useToast();
@@ -34,33 +32,63 @@ export default function ChequeBookOrder() {
     const [submitting, setSubmitting] = useState(false);
     const [successData, setSuccessData] = useState<{ refNo: string; estimate: string } | null>(null);
 
+    // Leaf options with pricing
     const leafOptions = [25, 50, 100];
+    const leafPricing: Record<number, number> = {
+        25: 5,    // $5 for 25 leaves
+        50: 8,    // $8 for 50 leaves
+        100: 12,  // $12 for 100 leaves
+    };
     const [deliveryAddress, setDeliveryAddress] = useState({
         line1: '123, Highland Park',
         line2: 'Financial District',
-        city: 'Metropolis',
-        pin: '500081'
+        city: '',
+        pin: ''
     });
     const [isEditingAddress, setIsEditingAddress] = useState(false);
+    const [loadingAddress, setLoadingAddress] = useState(true);
 
+    // Initialize userId from sessionStorage (security: NOT from URL)
     useEffect(() => {
-        const fetchAccounts = async () => {
+        const storedUserId = sessionStorage.getItem('kiosk_userId');
+        if (!storedUserId) {
+            showError('Session expired. Please login again.');
+            router.replace('/login');
+            return;
+        }
+        setUserId(storedUserId);
+    }, []);
+
+    // Fetch accounts and address when userId is available
+    useEffect(() => {
+        if (!userId) return; // Wait for userId to be set
+        
+        const fetchData = async () => {
             try {
-                const response = await accountService.getAccounts(userId);
-                if (response.success && response.data) {
-                    setAccounts(response.data);
+                // Fetch accounts
+                const accountResponse = await accountService.getAccounts(userId);
+                if (accountResponse.success && accountResponse.data) {
+                    setAccounts(accountResponse.data);
                 } else {
                     showError('Failed to load accounts');
                 }
+
+                // Fetch address from API
+                const { customerApi } = await import('../../src/services/api/customerApi');
+                const addressResponse = await customerApi.getAddress();
+                if (addressResponse.success && addressResponse.data) {
+                    setDeliveryAddress(addressResponse.data);
+                }
             } catch (error) {
                 console.error(error);
-                showError('Error loading accounts');
+                showError('Error loading data');
             } finally {
                 setLoadingAccounts(false);
+                setLoadingAddress(false);
             }
         };
 
-        fetchAccounts();
+        fetchData();
     }, [userId]);
 
     const handleNext = () => {
@@ -78,12 +106,15 @@ export default function ChequeBookOrder() {
     const handleSubmit = async () => {
         if (!selectedAccount || !selectedLeaves) return;
 
+        const chargeAmount = leafPricing[selectedLeaves];
+        
         setSubmitting(true);
         try {
             const response = await chequeBookService.requestChequeBook({
                 accountId: selectedAccount.toString(),
                 leaves: selectedLeaves,
-                deliveryAddress
+                deliveryAddress,
+                chargeAmount, // Include charge for backend to debit
             });
 
             if (response.success && response.data) {
@@ -92,7 +123,7 @@ export default function ChequeBookOrder() {
                     estimate: response.data.deliveryEstimate
                 });
                 setIsSuccess(true);
-                showSuccess('Cheque book request submitted successfully!');
+                showSuccess(`Cheque book ordered! $${chargeAmount} debited from your account.`);
             } else {
                 showError(response.message || 'Request failed');
             }
@@ -116,6 +147,35 @@ export default function ChequeBookOrder() {
         return (
             <Box sx={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (accounts.length === 0) {
+        return (
+            <Box sx={{ 
+                height: '100vh', 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center', 
+                alignItems: 'center',
+                bgcolor: isDark ? '#020617' : '#F0F2F5',
+                p: 4
+            }}>
+                <Typography variant="h4" sx={{ mb: 2, color: isDark ? 'white' : 'inherit' }}>
+                    No Accounts Available
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 4, color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary', textAlign: 'center' }}>
+                    You don't have any accounts linked to your profile yet. Please contact your branch to set up an account.
+                </Typography>
+                <Button 
+                    variant="contained" 
+                    size="large" 
+                    onClick={() => router.push('/dashboard')}
+                    sx={{ px: 4, py: 1.5 }}
+                >
+                    Go to Dashboard
+                </Button>
             </Box>
         );
     }
@@ -169,7 +229,7 @@ export default function ChequeBookOrder() {
                 borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
             }}>
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>Request Cheque Book</Typography>
-                <Button color="error" onClick={() => router.push('/dashboard')} sx={{ mr: 18 }}>Cancel</Button>
+                <Button color="error" onClick={() => router.push('/dashboard')}>Cancel</Button>
             </Paper>
 
             <Box sx={{ flexGrow: 1, p: 4, display: 'flex', justifyContent: 'center' }}>
@@ -256,6 +316,13 @@ export default function ChequeBookOrder() {
                                                 <CardContent>
                                                     <Typography variant="h3" color="primary" fontWeight="bold">{leaves}</Typography>
                                                     <Typography variant="body1" color={isDark ? '#94A3B8' : 'text.secondary'}>Leaves</Typography>
+                                                    <Divider sx={{ my: 1.5 }} />
+                                                    <Typography variant="h5" color="success.main" fontWeight="600">
+                                                        ${leafPricing[leaves]}
+                                                    </Typography>
+                                                    <Typography variant="caption" color={isDark ? '#64748B' : 'text.secondary'}>
+                                                        Processing Fee
+                                                    </Typography>
                                                 </CardContent>
                                             </Card>
                                         </Grid>
@@ -320,7 +387,24 @@ export default function ChequeBookOrder() {
                                             variant={isEditingAddress ? "contained" : "text"}
                                             color={isEditingAddress ? "primary" : "primary"}
                                             sx={{ mt: 2 }}
-                                            onClick={() => setIsEditingAddress(!isEditingAddress)}
+                                            onClick={async () => {
+                                                if (isEditingAddress) {
+                                                    // Save address to API
+                                                    try {
+                                                        const { customerApi } = await import('../../src/services/api/customerApi');
+                                                        const response = await customerApi.updateAddress(deliveryAddress);
+                                                        if (response.success) {
+                                                            showSuccess('Address saved successfully');
+                                                        } else {
+                                                            showError('Failed to save address');
+                                                        }
+                                                    } catch (error) {
+                                                        console.error(error);
+                                                        showError('Error saving address');
+                                                    }
+                                                }
+                                                setIsEditingAddress(!isEditingAddress);
+                                            }}
                                         >
                                             {isEditingAddress ? 'Save Address' : 'Edit Address'}
                                         </Button>
@@ -349,8 +433,14 @@ export default function ChequeBookOrder() {
 
                                             <Grid size={12}><Divider sx={{ my: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }} /></Grid>
 
-                                            <Grid size={6}><Typography variant="h6" color={isDark ? '#F8FAFC' : 'text.primary'}>Total Charges</Typography></Grid>
-                                            <Grid size={6}><Typography variant="h6" color="primary">Free</Typography></Grid>
+                                            <Grid size={6}><Typography variant="h6" color={isDark ? '#F8FAFC' : 'text.primary'}>Processing Fee</Typography></Grid>
+                                            <Grid size={6}><Typography variant="h6" color="error.main" fontWeight="bold">${selectedLeaves ? leafPricing[selectedLeaves] : 0}</Typography></Grid>
+                                            
+                                            <Grid size={12}>
+                                                <Typography variant="caption" color={isDark ? '#64748B' : 'text.secondary'}>
+                                                    This amount will be debited from your selected account
+                                                </Typography>
+                                            </Grid>
                                         </Grid>
                                     </Paper>
                                     <Box sx={{ mt: 3 }}>

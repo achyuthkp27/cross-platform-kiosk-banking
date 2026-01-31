@@ -20,8 +20,9 @@ export default function FundTransferWizard() {
 
     const {
         step, setStep, loading, setLoading, form, setForm, errors,
-        isNewBeneficiary, setIsNewBeneficiary, mockRefNo, setMockRefNo,
-        handleNext, handleBack, getBeneficiaryDetails, submitTransfer
+        isNewBeneficiary, setIsNewBeneficiary, addBeneficiaryStep, setAddBeneficiaryStep, mockRefNo, setMockRefNo,
+        handleNext, handleBack, getBeneficiaryDetails, getSelectedAccountDetails, submitTransfer,
+        accounts, beneficiaries, dataLoading
     } = useFundTransfer();
 
     const handleConfirm = async () => {
@@ -42,14 +43,38 @@ export default function FundTransferWizard() {
         );
     }
 
+    // Handle no accounts gracefully
+    if (!dataLoading && accounts.length === 0) {
+        return (
+            <KioskPage maxWidth={800}>
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>
+                        No Accounts Available
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                        You don't have any accounts linked to your profile yet. Please contact your branch to set up an account.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        size="large" 
+                        onClick={() => router.push('/dashboard')}
+                        sx={{ px: 4, py: 1.5 }}
+                    >
+                        Go to Dashboard
+                    </Button>
+                </Box>
+            </KioskPage>
+        );
+    }
+
     return (
         <KioskPage maxWidth={800}>
             <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
                 Fund Transfer
             </Typography>
 
-            {/* Stepper */}
-            <WizardStepper steps={3} currentStep={step} />
+            {/* Stepper - Hide when adding new beneficiary to avoid confusion */}
+            {!isNewBeneficiary && <WizardStepper steps={3} currentStep={step} />}
 
             <AnimatePresence mode="wait">
                 {step === 1 && (
@@ -59,7 +84,12 @@ export default function FundTransferWizard() {
                         errors={errors}
                         isNewBeneficiary={isNewBeneficiary}
                         setIsNewBeneficiary={setIsNewBeneficiary}
+                        addBeneficiaryStep={addBeneficiaryStep}
+                        setAddBeneficiaryStep={setAddBeneficiaryStep}
                         isDark={isDark}
+                        accounts={accounts}
+                        beneficiaries={beneficiaries}
+                        dataLoading={dataLoading}
                     />
                 )}
 
@@ -75,10 +105,17 @@ export default function FundTransferWizard() {
                     <TransferReview
                         form={form}
                         getBeneficiaryDetails={getBeneficiaryDetails}
+                        getSelectedAccountDetails={getSelectedAccountDetails}
                         isDark={isDark}
                     />
                 )}
             </AnimatePresence>
+
+            {errors.root && (
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 2, color: 'error.contrastText' }}>
+                    <Typography>{errors.root}</Typography>
+                </Box>
+            )}
 
             <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Button
@@ -98,7 +135,10 @@ export default function FundTransferWizard() {
                         onClick={handleNext}
                         sx={{ height: 56, flex: 2, borderRadius: 2 }}
                     >
-                        Next
+                        {step === 1 && isNewBeneficiary ? (
+                            addBeneficiaryStep === 1 ? 'Next' :
+                            addBeneficiaryStep === 2 ? 'Confirm & Save' : 'Continue'
+                        ) : 'Next'}
                     </Button>
                 ) : (
                     <Button

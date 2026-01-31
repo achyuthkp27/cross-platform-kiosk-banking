@@ -17,7 +17,7 @@ export default function CardActionPage() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-    const card = cards.find(c => c.id === cardId);
+    const card = cards.find(c => String(c.id) === String(cardId));
 
     // Redirect if invalid access
     useEffect(() => {

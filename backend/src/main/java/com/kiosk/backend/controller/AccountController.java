@@ -25,14 +25,21 @@ public class AccountController {
     }
 
     /**
-     * Get accounts for a customer by User ID (e.g. DEMO001)
+     * Get accounts for the authenticated user
+     * User ID extracted from SecurityContext (JWT)
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAccounts(@RequestParam String customerId) {
-        if (customerId == null) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<Map<String, Object>> getAccounts(
+            org.springframework.security.core.Authentication authentication) {
+        String userId = (String) authentication.getPrincipal();
+
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.status(401).build();
         }
-        List<Account> accounts = accountService.getAccountsByUserId(customerId);
+
+        // Auto-uppercase userId for case-insensitive lookup
+        String normalizedId = java.util.Objects.requireNonNull(userId).toUpperCase();
+        List<Account> accounts = accountService.getAccountsByUserId(java.util.Objects.requireNonNull(normalizedId));
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);

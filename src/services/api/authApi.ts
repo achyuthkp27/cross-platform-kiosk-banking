@@ -22,22 +22,22 @@ export const authApi: IAuthService = {
     },
 
     async validatePin(userId: string, pin: string): Promise<ApiResponse<void>> {
-        return apiClient.post('/auth/validate-pin', { userId, pin });
+        return apiClient.post('/auth/validate-pin', { pin });
     },
 
     async changePin(userId: string, oldPin: string, newPin: string): Promise<ApiResponse<void>> {
-        return apiClient.post('/auth/change-pin', { userId, oldPin, newPin });
+        return apiClient.post('/auth/change-pin', { oldPin, newPin });
     },
 
     async updatePreferences(userId: string, language?: string, theme?: string): Promise<ApiResponse<void>> {
-        return apiClient.post('/auth/preferences', { userId, language, theme });
+        return apiClient.post('/auth/preferences', { language, theme });
     },
 
     async logout(userId: string): Promise<void> {
-        await apiClient.post('/auth/logout', { userId });
+        await apiClient.post('/auth/logout', {});
     },
 
     async getProfile(userId: string): Promise<ApiResponse<CustomerProfile>> {
-        return apiClient.get(`/auth/profile/${userId}`);
+        return apiClient.get(`/auth/profile`);
     }
 };

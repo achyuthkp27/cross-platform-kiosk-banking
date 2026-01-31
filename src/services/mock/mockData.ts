@@ -40,7 +40,7 @@ export const MOCK_ACCOUNTS: Record<string, Account[]> = {
     'DEMO001': [
         {
             id: 1,
-            accountNumber: '1234567890',
+            accountNumber: '1000000001',
             ifscCode: 'KIOSK0001234',
             balance: 50000.00,
             availableBalance: 48500.00,
@@ -49,7 +49,7 @@ export const MOCK_ACCOUNTS: Record<string, Account[]> = {
         },
         {
             id: 2,
-            accountNumber: '9876543210',
+            accountNumber: '2000000001',
             ifscCode: 'KIOSK0001234',
             balance: 125000.00,
             availableBalance: 125000.00,
@@ -78,7 +78,7 @@ export const MOCK_CARDS: Record<string, Card[]> = {
     'DEMO001': [
         {
             id: 1,
-            number: '4532 **** **** 8890',
+            number: '4532789012348890',
             type: 'DEBIT',
             network: 'VISA',
             expiryDate: '12/28',
@@ -89,7 +89,7 @@ export const MOCK_CARDS: Record<string, Card[]> = {
         },
         {
             id: 2,
-            number: '5412 **** **** 3456',
+            number: '5412789012343456',
             type: 'CREDIT',
             network: 'MASTERCARD',
             expiryDate: '09/27',

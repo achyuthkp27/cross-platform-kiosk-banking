@@ -56,5 +56,24 @@ export const cardMock: ICardService = {
                 deliveryEstimate: '5-7 business days'
             }
         };
+    },
+
+    async requestNewCard(accountId: number, type: string): Promise<ApiResponse<Card>> {
+        await delay(1000);
+        
+        return {
+            success: true,
+            message: 'Card requested successfully',
+            data: {
+                id: Math.floor(Math.random() * 10000),
+                number: '4' + Math.random().toString().slice(2, 17),
+                holderName: 'DEMO USER',
+                expiryDate: '12/30',
+                cvv: '123',
+                type: type as 'DEBIT' | 'CREDIT',
+                network: 'VISA',
+                status: 'ACTIVE',
+            }
+        };
     }
 };

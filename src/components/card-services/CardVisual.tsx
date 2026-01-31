@@ -20,6 +20,16 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
         }
     };
 
+    // Format card number with masking and spacing
+    const formatCardNumber = (num: string) => {
+        const clean = num.replace(/\D/g, '');
+        if (clean.length === 16) {
+            return `${clean.slice(0, 4)} **** **** ${clean.slice(12)}`;
+        }
+        // Fallback or credit card if different length
+        return num.replace(/(.{4})/g, '$1 ').trim();
+    };
+
     return (
         <motion.div
             layout // Enable layout animation for smooth sorting/movement
@@ -47,9 +57,9 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
                     borderRadius: '20px',
                     position: 'relative',
                     overflow: 'hidden',
-                    background: `linear-gradient(135deg, ${card.color} 0%, ${alpha(card.color, 0.6)} 100%)`,
+                    background: `linear-gradient(135deg, ${card.color || '#374151'} 0%, ${alpha(card.color || '#374151', 0.6)} 100%)`,
                     boxShadow: isSelected
-                        ? `0 20px 40px ${alpha(card.color, 0.4)}`
+                        ? `0 20px 40px ${alpha(card.color || '#374151', 0.4)}`
                         : '0 10px 20px rgba(0,0,0,0.1)',
                     p: 3,
                     display: 'flex',
@@ -81,20 +91,30 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
                         border: '1px solid rgba(0,0,0,0.1)',
                     }} />
 
-                    {card.status === 'BLOCKED' && (
-                        <Box sx={{
-                            bgcolor: 'rgba(0,0,0,0.6)',
-                            color: '#ff4444',
-                            px: 1.5,
-                            py: 0.5,
-                            borderRadius: 4,
-                            border: '1px solid #ff4444',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold'
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                        <Typography variant="caption" sx={{ 
+                            color: 'rgba(255,255,255,0.9)', 
+                            fontWeight: 'bold', 
+                            fontSize: '0.7rem',
+                            letterSpacing: '0.05em'
                         }}>
-                            BLOCKED
-                        </Box>
-                    )}
+                            {card.type} CARD
+                        </Typography>
+                        {card.status === 'BLOCKED' && (
+                            <Box sx={{
+                                bgcolor: 'rgba(0,0,0,0.6)',
+                                color: '#ff4444',
+                                px: 1,
+                                py: 0.2,
+                                borderRadius: 4,
+                                border: '1px solid #ff4444',
+                                fontSize: '0.65rem',
+                                fontWeight: 'bold'
+                            }}>
+                                BLOCKED
+                            </Box>
+                        )}
+                    </Box>
                 </Box>
 
                 {/* Card Number */}
@@ -106,7 +126,7 @@ const CardVisual: React.FC<CardVisualProps> = ({ card, isSelected, onClick }) =>
                     zIndex: 1,
                     mt: 2
                 }}>
-                    {card.number}
+                    {formatCardNumber(card.number)}
                 </Typography>
 
                 {/* Bottom Row: Details & Network */}

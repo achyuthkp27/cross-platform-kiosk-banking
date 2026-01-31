@@ -10,7 +10,7 @@ import ActionButtons from '../../src/components/ActionButtons';
 
 export default function CardServicesDashboard() {
     const router = useRouter();
-    const { cards, selectedCard, setSelectedCard } = useCardServices();
+    const { cards, selectedCard, setSelectedCard, loading } = useCardServices();
     const { mode } = useThemeContext();
     const isDark = mode === 'dark';
 
@@ -49,11 +49,30 @@ export default function CardServicesDashboard() {
             </Box>
 
             {/* Card Selection */}
-            <CardCarousel
-                cards={cards}
-                selectedCard={selectedCard}
-                onSelect={setSelectedCard}
-            />
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                    <Typography>Loading cards...</Typography>
+                </Box>
+            ) : cards.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
+                        No cards found linked to your account.
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 4, color: 'text.secondary' }}>
+                        Request a new debit or credit card to get started.
+                    </Typography>
+                    <ActionButtons
+                        primaryText="Request New Card"
+                        onPrimary={() => router.push('/card-services/request')} 
+                    />
+                </Box>
+            ) : (
+                <CardCarousel
+                    cards={cards}
+                    selectedCard={selectedCard}
+                    onSelect={setSelectedCard}
+                />
+            )}
 
             {/* Actions for Selected Card */}
             {selectedCard && (

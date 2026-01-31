@@ -35,5 +35,30 @@ export const fundTransferMock: IFundTransferService = {
                 status: 'SUCCESS'
             }
         };
+    },
+
+    async getBeneficiaries(): Promise<ApiResponse<{ id: string; name: string; account: string; ifsc: string }[]>> {
+        await delay(500);
+        return {
+            success: true,
+            data: [
+                { id: 'ben_1', name: 'John Doe', account: '1234567890', ifsc: 'HDFC0001234' },
+                { id: 'ben_2', name: 'Jane Smith', account: '0987654321', ifsc: 'SBIN0001234' },
+            ]
+        };
+    },
+
+    async addBeneficiary(name: string, account: string, ifsc: string): Promise<ApiResponse<{ id: string; name: string; account: string; ifsc: string }>> {
+        await delay(1000);
+        return {
+            success: true,
+            message: 'Beneficiary added',
+            data: {
+                id: `ben_${Date.now()}`,
+                name,
+                account,
+                ifsc
+            }
+        };
     }
 };

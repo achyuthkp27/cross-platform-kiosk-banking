@@ -54,14 +54,15 @@ export default function LoginScreen() {
             const response = await authService.login({ userId, dob });
             
             if (response.success && response.data) {
-                // Store user info for OTP screen
-                sessionStorage.setItem('pendingUserId', userId);
+                // Store user info for OTP screen - use userId from response (uppercase from DB)
+                const normalizedUserId = response.data.userId || userId.toUpperCase();
+                sessionStorage.setItem('pendingUserId', normalizedUserId);
                 sessionStorage.setItem('userName', response.data.name);
                 
-                // Generate OTP for login
-                await otpService.generate({ identifier: userId, purpose: 'LOGIN' });
+                // Generate OTP for login - use normalized userId
+                await otpService.generate({ identifier: normalizedUserId, purpose: 'LOGIN' });
                 
-                addLog('User Login Initiated', userId);
+                addLog('User Login Initiated', normalizedUserId);
                 router.push('/otp');
             } else {
                 setError(response.message || 'Invalid User ID or Date of Birth');
@@ -145,7 +146,7 @@ export default function LoginScreen() {
 
             <ActionButtons
                 onPrimary={validateAndProceed}
-                onSecondary={() => router.back()}
+                onSecondary={() => router.replace('/')}
                 primaryText={isLoading ? 'Loading...' : t('common.next')}
                 secondaryText={t('common.back')}
                 primaryDisabled={!userId || !dob || isLoading}

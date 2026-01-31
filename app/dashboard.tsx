@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Container } from '@mui/material';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '../src/context/LanguageContext';
@@ -17,6 +17,14 @@ export default function Dashboard() {
     const { mode } = useThemeContext();
     const { timeLeft, endSession } = useSession();
     const { menuItems, accounts, totalBalance, loading } = useDashboardData();
+    
+    // Get user name from sessionStorage
+    const [userName, setUserName] = useState('');
+    
+    useEffect(() => {
+        const name = sessionStorage.getItem('userName');
+        setUserName(name || 'User');
+    }, []);
 
     const isDark = mode === 'dark';
 
@@ -70,7 +78,7 @@ export default function Dashboard() {
             {/* Header */}
             <DashboardHeader
                 isDark={isDark}
-                userName={t('dashboard.welcome_user')}
+                userName={userName}
                 timeLeft={timeLeft}
                 formatTime={formatTime}
                 onLogout={endSession}

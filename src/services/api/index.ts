@@ -20,7 +20,9 @@ import { apiClient } from '../apiClient';
 
 export const accountApi: IAccountService = {
     async getAccounts(customerId: string): Promise<ApiResponse<Account[]>> {
-        return apiClient.get(`/accounts?customerId=${customerId}`);
+        // Use path parameter instead of query string for production safety
+        // Note: customerId arg is ignored in REAL mode as backend extracts user from token
+        return apiClient.get(`/accounts`);
     },
 
     async getBalance(accountId: number): Promise<ApiResponse<{ balance: number; available: number }>> {
@@ -34,3 +36,5 @@ export const accountApi: IAccountService = {
         return apiClient.get(url);
     }
 };
+
+

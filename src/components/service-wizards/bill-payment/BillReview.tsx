@@ -60,7 +60,7 @@ export const BillReview: React.FC<BillReviewProps> = ({
                                     bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
                                 }}
                             >
-                                {accounts.map((acc) => (
+                                {accounts.filter(acc => !!acc).map((acc) => (
                                     <MenuItem key={acc.accountNumber} value={acc.accountNumber}>
                                         {acc.type} - {acc.accountNumber} (${acc.balance})
                                     </MenuItem>

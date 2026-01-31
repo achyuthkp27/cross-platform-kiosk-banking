@@ -1,15 +1,16 @@
 import React from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import { motion } from 'framer-motion';
-import { MOCK_ACCOUNTS, FormState } from '../../../hooks/service-wizards/useFundTransfer';
+import { FormState } from '../../../hooks/service-wizards/useFundTransfer';
 
 interface TransferReviewProps {
     form: FormState;
     getBeneficiaryDetails: () => string;
+    getSelectedAccountDetails: () => string;
     isDark: boolean;
 }
 
-export const TransferReview: React.FC<TransferReviewProps> = ({ form, getBeneficiaryDetails, isDark }) => {
+export const TransferReview: React.FC<TransferReviewProps> = ({ form, getBeneficiaryDetails, getSelectedAccountDetails, isDark }) => {
     return (
         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <Typography variant="h6" gutterBottom align="left">Review & Confirm</Typography>
@@ -18,7 +19,7 @@ export const TransferReview: React.FC<TransferReviewProps> = ({ form, getBenefic
                 <Box>
                     <Typography variant="caption" color="text.secondary">From Account</Typography>
                     <Typography variant="body1" fontWeight="bold">
-                        {MOCK_ACCOUNTS.find(a => a.id === form.fromAccount)?.number}
+                        {getSelectedAccountDetails()}
                     </Typography>
                 </Box>
                 <Box>

@@ -12,12 +12,13 @@ const CATEGORIES = [
 ];
 
 interface CategorySelectionProps {
+    selectedCategory?: string;
     handleCategorySelect: (id: string) => void;
     onCancel: () => void;
     isDark: boolean;
 }
 
-export const CategorySelection: React.FC<CategorySelectionProps> = ({ handleCategorySelect, onCancel, isDark }) => {
+export const CategorySelection: React.FC<CategorySelectionProps> = ({ selectedCategory, handleCategorySelect, onCancel, isDark }) => {
     return (
         <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <Typography variant="h6" gutterBottom align="left">Select Category</Typography>
@@ -30,8 +31,11 @@ export const CategorySelection: React.FC<CategorySelectionProps> = ({ handleCate
                                 textAlign: 'center',
                                 p: 2,
                                 borderRadius: 3,
-                                border: '2px solid transparent',
-                                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'background.paper',
+                                border: '2px solid',
+                                borderColor: cat.id === selectedCategory ? 'primary.main' : 'transparent',
+                                bgcolor: cat.id === selectedCategory 
+                                    ? (isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(25, 118, 210, 0.05)')
+                                    : (isDark ? 'rgba(15, 23, 42, 0.6)' : 'background.paper'),
                                 '&:hover': {
                                     bgcolor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(0,0,0,0.02)',
                                     transform: 'translateY(-4px)',

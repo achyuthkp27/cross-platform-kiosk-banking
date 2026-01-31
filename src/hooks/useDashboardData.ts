@@ -37,12 +37,14 @@ export const useDashboardData = () => {
                 if (response.success && response.data) {
                     // Map backend data to UI format if needed, or use directly if matches
                     // Adding color for UI based on account type
-                    const mappedAccounts = response.data.map(acc => ({
-                        ...acc,
-                        color: (acc.type === 'Savings' || acc.type === 'SAVINGS') ? '#3B82F6' : '#10B981', // Blue for Savings, Green for Current
-                        // Ensure numeric balance
-                        balance: typeof acc.balance === 'string' ? parseFloat(acc.balance) : acc.balance
-                    }));
+                    const mappedAccounts = response.data
+                        .filter(acc => acc !== null && acc !== undefined)
+                        .map(acc => ({
+                            ...acc,
+                            color: (acc.type === 'Savings' || acc.type === 'SAVINGS') ? '#3B82F6' : '#10B981', // Blue for Savings, Green for Current
+                            // Ensure numeric balance
+                            balance: typeof acc.balance === 'string' ? parseFloat(acc.balance) : acc.balance
+                        }));
                     setAccounts(mappedAccounts);
                 } else {
                     setError(response.message || 'Failed to fetch accounts');

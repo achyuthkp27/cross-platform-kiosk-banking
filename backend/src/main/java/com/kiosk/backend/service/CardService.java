@@ -1,32 +1,60 @@
 package com.kiosk.backend.service;
 
+import com.kiosk.backend.entity.Card;
+import com.kiosk.backend.repository.CardRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import java.util.UUID;
-import java.util.Map;
-import java.util.HashMap;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class CardService {
 
-    public Map<String, Object> blockCard(String cardId, String reason) {
-        // Logic to update card status in DB would go here
-        Map<String, Object> result = new HashMap<>();
-        result.put("status", "BLOCKED");
-        result.put("referenceId", "BLK-" + UUID.randomUUID().toString().substring(0, 8));
-        return result;
+    private final CardRepository cardRepository;
+
+    public CardService(CardRepository cardRepository) {
+        this.cardRepository = cardRepository;
     }
 
-    public Map<String, Object> unblockCard(String cardId) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("status", "ACTIVE");
-        return result;
+    public List<Card> getCardsByUserId(String userId) {
+        return cardRepository.findByUserId(userId);
     }
 
-    public Map<String, Object> replaceCard(String cardId, String reason, String address) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("status", "REPLACEMENT_REQUESTED");
-        result.put("newCardId", "REQ-" + UUID.randomUUID().toString().substring(0, 8));
-        result.put("deliveryEstimate", "5-7 Days");
-        return result;
+    @Transactional
+    public Card blockCard(@NonNull Long cardId) {
+        Optional<Card> cardOpt = cardRepository.findById(cardId);
+        if (cardOpt.isPresent()) {
+            Card card = cardOpt.get();
+            card.setStatus("BLOCKED");
+            return cardRepository.save(card);
+        }
+        throw new RuntimeException("Card not found");
+    }
+
+    @Transactional
+    public Card requestNewCard(String userId, Long accountId, String type) {
+        Card card = new Card();
+        card.setUserId(userId);
+        card.setAccountId(accountId);
+        card.setType(type);
+        card.setStatus("ACTIVE");
+
+        // Generate random card details for demo
+        Random random = new Random();
+        StringBuilder cardNumber = new StringBuilder("4"); // Visa starts with 4
+        for (int i = 0; i < 15; i++) {
+            cardNumber.append(random.nextInt(10));
+        }
+        card.setNumber(cardNumber.toString());
+
+        card.setCvv(String.format("%03d", random.nextInt(1000)));
+        card.setPin(String.format("%04d", random.nextInt(10000)));
+        card.setExpiryDate(LocalDate.now().plusYears(5));
+
+        return cardRepository.save(card);
     }
 }

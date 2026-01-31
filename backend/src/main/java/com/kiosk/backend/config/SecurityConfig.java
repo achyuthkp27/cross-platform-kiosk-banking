@@ -20,9 +20,12 @@ import com.kiosk.backend.filter.EncryptionFilter;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final com.kiosk.backend.filter.IdempotencyFilter idempotencyFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
+            com.kiosk.backend.filter.IdempotencyFilter idempotencyFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.idempotencyFilter = idempotencyFilter;
     }
 
     @Bean
@@ -45,6 +48,7 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(idempotencyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(encryptionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(rateLimitFilter, EncryptionFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

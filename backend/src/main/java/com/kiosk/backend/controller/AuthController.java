@@ -78,26 +78,31 @@ public class AuthController {
      * Validate PIN for transaction authorization
      */
     @PostMapping("/validate-pin")
-    public ResponseEntity<Map<String, Object>> validatePin(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
+    public ResponseEntity<Map<String, Object>> validatePin(
+            org.springframework.security.core.Authentication authentication,
+            @RequestBody Map<String, String> body) {
         String pin = body.get("pin");
-
         Map<String, Object> response = new HashMap<>();
 
-        if (userId == null || pin == null) {
+        if (pin == null) {
             response.put("success", false);
-            response.put("message", "User ID and PIN are required");
+            response.put("message", "PIN is required");
             return ResponseEntity.badRequest().body(response);
         }
 
-        boolean valid = authService.validatePin(userId, pin);
+        String userId = (String) authentication.getPrincipal();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
+
+        final String finalUserId = userId.toUpperCase();
+        boolean valid = authService.validatePin(java.util.Objects.requireNonNull(finalUserId), pin);
 
         if (valid) {
-            auditService.logCustomerAction("PIN_VALIDATED", userId, null);
+            auditService.logCustomerAction("PIN_VALIDATED", finalUserId, null);
             response.put("success", true);
             response.put("message", "PIN validated");
         } else {
-            auditService.logCustomerAction("PIN_FAILED", userId, null);
+            auditService.logCustomerAction("PIN_FAILED", finalUserId, null);
             response.put("success", false);
             response.put("message", "Invalid PIN");
         }
@@ -109,23 +114,28 @@ public class AuthController {
      * Change PIN
      */
     @PostMapping("/change-pin")
-    public ResponseEntity<Map<String, Object>> changePin(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
+    public ResponseEntity<Map<String, Object>> changePin(
+            org.springframework.security.core.Authentication authentication,
+            @RequestBody Map<String, String> body) {
         String oldPin = body.get("oldPin");
         String newPin = body.get("newPin");
-
         Map<String, Object> response = new HashMap<>();
 
-        if (userId == null || oldPin == null || newPin == null) {
+        if (oldPin == null || newPin == null) {
             response.put("success", false);
-            response.put("message", "User ID, old PIN, and new PIN are required");
+            response.put("message", "Old PIN and new PIN are required");
             return ResponseEntity.badRequest().body(response);
         }
 
-        boolean changed = authService.changePin(userId, oldPin, newPin);
+        String userId = (String) authentication.getPrincipal();
+        if (userId == null)
+            return ResponseEntity.status(401).build();
+
+        final String finalUserId = userId.toUpperCase();
+        boolean changed = authService.changePin(java.util.Objects.requireNonNull(finalUserId), oldPin, newPin);
 
         if (changed) {
-            auditService.logCustomerAction("PIN_CHANGED", userId, null);
+            auditService.logCustomerAction("PIN_CHANGED", finalUserId, null);
             response.put("success", true);
             response.put("message", "PIN changed successfully");
         } else {
@@ -140,20 +150,22 @@ public class AuthController {
      * Update user preferences
      */
     @PostMapping("/preferences")
-    public ResponseEntity<Map<String, Object>> updatePreferences(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
+    public ResponseEntity<Map<String, Object>> updatePreferences(
+            org.springframework.security.core.Authentication authentication,
+            @RequestBody Map<String, String> body) {
         String language = body.get("language");
         String theme = body.get("theme");
 
+        String userId = (String) authentication.getPrincipal(); // From Token
+        if (userId == null)
+            return ResponseEntity.status(401).build();
+
+        // Normalize userId
+        final String normalizedUserId = java.util.Objects.requireNonNull(userId).toUpperCase();
+
+        authService.updatePreferences(java.util.Objects.requireNonNull(normalizedUserId), language, theme);
+
         Map<String, Object> response = new HashMap<>();
-
-        if (userId == null) {
-            response.put("success", false);
-            response.put("message", "User ID is required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        authService.updatePreferences(userId, language, theme);
         response.put("success", true);
         response.put("message", "Preferences updated");
 
@@ -164,10 +176,9 @@ public class AuthController {
      * Logout
      */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, Object>> logout(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-
-        if (userId != null) {
+    public ResponseEntity<Map<String, Object>> logout(org.springframework.security.core.Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            String userId = (String) authentication.getPrincipal();
             auditService.logCustomerAction("LOGOUT", userId, null);
         }
 
@@ -176,5 +187,30 @@ public class AuthController {
         response.put("message", "Logged out successfully");
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get Profile
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(
+            org.springframework.security.core.Authentication authentication) {
+        String userId = (String) authentication.getPrincipal();
+        final String nonNullUserId = java.util.Objects.requireNonNull(userId);
+        Optional<Customer> customerOpt = authService.getCustomer(nonNullUserId.toUpperCase());
+
+        Map<String, Object> response = new HashMap<>();
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+            response.put("success", true);
+            response.put("data", Map.of(
+                    "userId", customer.getUserId(),
+                    "name", customer.getName(),
+                    "languagePref", customer.getLanguagePref(),
+                    "themePref", customer.getThemePref()));
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

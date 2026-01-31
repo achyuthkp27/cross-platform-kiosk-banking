@@ -112,6 +112,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, [endSession]);
 
     // Handle route-based session activation
+    // Session should only start AFTER user is logged in (has kiosk_userId in sessionStorage)
     useEffect(() => {
         const prevPathname = prevPathnameRef.current;
         prevPathnameRef.current = pathname;
@@ -122,12 +123,15 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return;
         }
 
-        // Navigating away from home - start session
-        if (pathname !== '/' && prevPathname === '/') {
+        // Only start session if user is logged in (check sessionStorage)
+        const isLoggedIn = typeof window !== 'undefined' && sessionStorage.getItem('kiosk_userId');
+        
+        // Start session only on dashboard (post-login) or if already logged in
+        if (pathname === '/dashboard' && !isActive && isLoggedIn) {
             setIsActive(true);
             setTimeLeft(sessionDuration);
         }
-    }, [pathname, sessionDuration]);
+    }, [pathname, sessionDuration, isActive]);
 
     useEffect(() => {
         if (!isActive) return;

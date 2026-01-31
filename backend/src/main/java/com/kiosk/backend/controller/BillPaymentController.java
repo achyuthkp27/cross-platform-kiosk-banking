@@ -30,13 +30,19 @@ public class BillPaymentController {
 
     @PostMapping("/fetch")
     public ApiResponse<BillDetailsResponse> fetchBill(@RequestBody BillFetchRequest request) {
-        // Mock fetch logic (simulated determinism)
         String consumerNo = request.getConsumerNo();
+        System.out.println("[DEBUG] Fetching Bill for: " + consumerNo);
+
+        // Generate semi-random deterministic data based on consumer number
+        int hash = consumerNo.hashCode();
+        BigDecimal amount = new BigDecimal(1000 + (Math.abs(hash) % 5000));
+        String name = (Math.abs(hash) % 2 == 0) ? "Alex Customer" : "Sam Billing";
+        String dueDate = "28/02/2026";
 
         BillDetailsResponse bill = new BillDetailsResponse(
-                new BigDecimal("1250"),
-                "20/02/2026",
-                "John API Doe",
+                amount,
+                dueDate,
+                name,
                 "BILL-" + consumerNo);
 
         return ApiResponse.success(bill);
@@ -44,15 +50,30 @@ public class BillPaymentController {
 
     @PostMapping("/pay")
     public ApiResponse<PaymentResponse> payBill(@RequestBody BillPaymentRequest request) {
+        System.out.println("[DEBUG] Processing Bill Payment: " + request.getBillNo() + " from "
+                + request.getFromAccount() + " Amount: " + request.getAmount());
         String fromAccount = request.getFromAccount();
         if (fromAccount == null) {
             return ApiResponse.error("Source account is required");
         }
 
-        Transaction txn = service.processPayment("Unknown", request.getAmount(), request.getBillNo(),
-                fromAccount);
+        try {
+            Transaction txn = service.processPayment(
+                    request.getBillerName() != null ? request.getBillerName() : "Unknown",
+                    request.getAmount(),
+                    request.getBillNo(),
+                    fromAccount);
 
-        PaymentResponse response = new PaymentResponse(txn.getId());
-        return ApiResponse.success(response);
+            System.out.println("[DEBUG] Bill Payment Success: " + txn.getId());
+            PaymentResponse response = new PaymentResponse(txn.getId());
+            return ApiResponse.success(response);
+        } catch (IllegalArgumentException e) {
+            System.err.println("[DEBUG] Bill Payment Validation Error: " + e.getMessage());
+            return ApiResponse.error(e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[DEBUG] Bill Payment System Error: " + e.getMessage());
+            e.printStackTrace();
+            return ApiResponse.error("Payment failed: " + e.getMessage());
+        }
     }
 }

@@ -78,6 +78,7 @@ export default function BillPaymentWizard() {
             <AnimatePresence mode="wait">
                 {step === 1 && (
                     <CategorySelection
+                        selectedCategory={category}
                         handleCategorySelect={handleCategorySelect}
                         onCancel={() => router.push('/dashboard')}
                         isDark={isDark}

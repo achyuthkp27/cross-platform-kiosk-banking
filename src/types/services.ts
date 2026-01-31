@@ -185,6 +185,7 @@ export interface ChequeBookRequest {
         city: string;
         pin: string;
     };
+    chargeAmount?: number; // Processing fee to debit from account
 }
 
 export interface ChequeBookResponse {

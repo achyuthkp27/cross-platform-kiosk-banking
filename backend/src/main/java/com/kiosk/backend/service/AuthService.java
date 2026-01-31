@@ -26,7 +26,7 @@ public class AuthService {
      * @return Customer if valid, empty if invalid
      */
     public Optional<Customer> authenticateCustomer(@NonNull String userId, String dob) {
-        Optional<Customer> customerOpt = customerRepository.findByUserId(userId);
+        Optional<Customer> customerOpt = customerRepository.findByUserIdIgnoreCase(userId);
 
         if (customerOpt.isEmpty()) {
             return Optional.empty();

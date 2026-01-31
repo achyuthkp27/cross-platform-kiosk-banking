@@ -77,7 +77,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             color="text.secondary" 
                             sx={{ mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                         >
-                            {userName}
+                            Welcome, {userName}
                         </Typography>
                     )}
                 </Box>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, CircularProgress, alpha, useTheme, IconButton, Modal, Stack, Divider } from '@mui/material';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Chip, alpha, useTheme, IconButton, Modal, Stack, Divider, MenuItem, TextField } from '@mui/material';
+import { useRouter } from 'expo-router';
 import { motion } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -28,6 +28,34 @@ const deriveCategory = (desc: string): string => {
     return 'Others';
 };
 
+// Different colors for different account types
+const getAccountColors = (accountType: string) => {
+    const type = accountType?.toUpperCase() || '';
+    if (type.includes('SAVING')) {
+        return {
+            gradient: 'linear-gradient(135deg, #0891B2 0%, #0E7490 100%)', // Cyan/Teal
+            shadowColor: 'rgba(8, 145, 178, 0.3)',
+        };
+    }
+    if (type.includes('CURRENT')) {
+        return {
+            gradient: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)', // Purple/Violet
+            shadowColor: 'rgba(124, 58, 237, 0.3)',
+        };
+    }
+    if (type.includes('FD') || type.includes('FIXED')) {
+        return {
+            gradient: 'linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)', // Red
+            shadowColor: 'rgba(220, 38, 38, 0.3)',
+        };
+    }
+    // Default: Emerald green for any other type
+    return {
+        gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)', // Emerald
+        shadowColor: 'rgba(5, 150, 105, 0.3)',
+    };
+};
+
 const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
     const [count, setCount] = useState(0);
 
@@ -53,43 +81,72 @@ const CountUp = ({ end, duration = 2 }: { end: number, duration?: number }) => {
 
 export default function AccountStatementView() {
     const router = useRouter();
-    const { userId } = useLocalSearchParams();
     const theme = useTheme();
     const { mode } = useThemeContext();
     const { showInfo, showError } = useToast();
     const isDark = mode === 'dark';
     
+    // Security: Get userId from sessionStorage, NOT URL params
+    const [userId, setUserId] = useState<string | null>(null);
+    
     const [loading, setLoading] = useState(true);
-    const [account, setAccount] = useState<Account | null>(null);
-    const [transactions, setTransactions] = useState<any[]>([]); // Using any for mapped UI data
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+    const [transactions, setTransactions] = useState<any[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
 
+    // Initialize userId from sessionStorage (security: NOT from URL)
     useEffect(() => {
-        const fetchData = async () => {
-            if (!userId) {
-                showError('User ID missing. Redirecting...');
-                setTimeout(() => router.replace('/account-statement'), 2000);
-                return;
-            }
+        const storedUserId = sessionStorage.getItem('kiosk_userId');
+        if (!storedUserId) {
+            showError('Session expired. Please login again.');
+            router.replace('/login');
+            return;
+        }
+        setUserId(storedUserId);
+    }, []);
 
+    // Fetch accounts when userId is available
+    useEffect(() => {
+        if (!userId) return; // Wait for userId to be set
+        
+        const fetchAccounts = async () => {
             try {
-                // 1. Fetch Accounts
-                const accResponse = await accountService.getAccounts(userId as string);
-                if (!accResponse.success || !accResponse.data || accResponse.data.length === 0) {
-                    throw new Error(accResponse.message || 'No accounts found');
+                const accResponse = await accountService.getAccounts(userId);
+                if (accResponse.success && accResponse.data && accResponse.data.length > 0) {
+                    setAccounts(accResponse.data);
+                    setSelectedAccountId(accResponse.data[0].id);
+                } else {
+                    // No accounts found - set empty state
+                    setAccounts([]);
+                    showInfo('No accounts found for this user.');
                 }
+            } catch (error) {
+                console.error('Failed to fetch accounts', error);
+                showError('Failed to load accounts. Please try again.');
+                setAccounts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-                const primaryAccount = accResponse.data[0];
-                setAccount(primaryAccount);
+        fetchAccounts();
+    }, [userId]);
 
-                // 2. Fetch Statement for primary account
-                const stmtResponse = await accountService.getStatement(primaryAccount.id);
+    // Fetch statement when selected account changes
+    useEffect(() => {
+        const fetchStatement = async () => {
+            if (!selectedAccountId) return;
+            
+            setLoadingTransactions(true);
+            try {
+                const stmtResponse = await accountService.getStatement(selectedAccountId);
                 if (stmtResponse.success && stmtResponse.data) {
-                    // Map API data to UI format
                     const mappedData = stmtResponse.data.map((txn: AccountStatement) => ({
                         id: txn.id,
-                        date: txn.txnDate, // Assuming format matches or use moment/date-fns locally
+                        date: txn.txnDate,
                         desc: txn.description,
                         category: deriveCategory(txn.description),
                         type: txn.txnType,
@@ -97,17 +154,22 @@ export default function AccountStatementView() {
                         txnId: txn.referenceId
                     }));
                     setTransactions(mappedData);
+                } else {
+                    setTransactions([]);
                 }
             } catch (error) {
-                console.error('Failed to fetch data', error);
-                showError('Failed to load statement data. Please try again.');
+                console.error('Failed to fetch statement', error);
+                showError('Failed to load statement');
+                setTransactions([]);
             } finally {
-                setLoading(false);
+                setLoadingTransactions(false);
             }
         };
 
-        fetchData();
-    }, [userId]);
+        fetchStatement();
+    }, [selectedAccountId]);
+
+    const selectedAccount = accounts.find(a => a.id === selectedAccountId) || null;
 
     // Filter transactions based on category
     const filteredTransactions = selectedCategory === 'All'
@@ -119,6 +181,11 @@ export default function AccountStatementView() {
         showInfo('Print dialog opened');
     };
 
+    const handleAccountChange = (accountId: number) => {
+        setSelectedAccountId(accountId);
+        setSelectedCategory('All');
+    };
+
     if (loading) {
         return (
             <Box sx={{
@@ -128,18 +195,14 @@ export default function AccountStatementView() {
                     ? 'linear-gradient(135deg, #020617 0%, #0F172A 100%)'
                     : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
             }}>
-                {/* Header Skeleton */}
                 <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
                     <SkeletonLoader variant="form" />
                 </Box>
 
                 <Grid container spacing={4}>
-                    {/* Account Details Skeleton */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <SkeletonLoader variant="card" />
                     </Grid>
-
-                    {/* Transactions List Skeleton */}
                     <Grid size={{ xs: 12, md: 8 }}>
                         <SkeletonLoader variant="list" count={6} />
                     </Grid>
@@ -148,11 +211,49 @@ export default function AccountStatementView() {
         );
     }
 
-    if (!account) {
+    if (accounts.length === 0) {
         return (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="h5">No Account Details Found</Typography>
-                <Button onClick={() => router.back()} sx={{ mt: 2 }}>Go Back</Button>
+            <Box sx={{ 
+                minHeight: '100vh',
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center', 
+                alignItems: 'center',
+                background: isDark
+                    ? 'linear-gradient(135deg, #020617 0%, #0F172A 50%, #020617 100%)'
+                    : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 50%, #F1F5F9 100%)',
+                p: 4
+            }}>
+                <Paper sx={{
+                    p: 6,
+                    borderRadius: 4,
+                    textAlign: 'center',
+                    maxWidth: 500,
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'white',
+                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                    backdropFilter: 'blur(12px)',
+                }}>
+                    <Typography variant="h4" sx={{ mb: 2, color: isDark ? 'white' : 'inherit', fontWeight: 'bold' }}>
+                        No Accounts Found
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 4, color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary' }}>
+                        You don't have any accounts linked to your profile yet. Please contact your branch to set up an account.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        size="large"
+                        onClick={() => router.replace('/dashboard')} 
+                        sx={{ 
+                            px: 4, 
+                            py: 1.5,
+                            borderRadius: 3,
+                            textTransform: 'none',
+                            fontSize: '1rem'
+                        }}
+                    >
+                        Go to Dashboard
+                    </Button>
+                </Paper>
             </Box>
         );
     }
@@ -195,24 +296,53 @@ export default function AccountStatementView() {
                             User ID: {userId}
                         </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Button
-                            variant="outlined"
-                            startIcon={<ArrowBackIcon />}
-                            onClick={() => router.replace('/dashboard')}
-                            sx={{
-                                borderRadius: 3,
-                                borderWidth: 2,
-                                fontWeight: 600,
-                                mr: 18,
-                                '&:hover': { borderWidth: 2 }
-                            }}
-                        >
-                            Dashboard
-                        </Button>
-                    </Box>
+                    <Button
+                        variant="outlined"
+                        startIcon={<ArrowBackIcon />}
+                        onClick={() => router.replace('/dashboard')}
+                        sx={{
+                            borderRadius: 3,
+                            borderWidth: 2,
+                            fontWeight: 600,
+                            '&:hover': { borderWidth: 2 }
+                        }}
+                    >
+                        Dashboard
+                    </Button>
                 </Box>
             </motion.div>
+
+            {/* Account Selector - Only show if user has multiple accounts */}
+            {accounts.length > 1 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                    <Box sx={{ mb: 3 }}>
+                        <TextField
+                            select
+                            label="Select Account"
+                            value={selectedAccountId || ''}
+                            onChange={(e) => handleAccountChange(Number(e.target.value))}
+                            sx={{
+                                minWidth: 300,
+                                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'white',
+                                borderRadius: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 2,
+                                }
+                            }}
+                        >
+                            {accounts.map((acc) => (
+                                <MenuItem key={acc.id} value={acc.id}>
+                                    {acc.type} - {acc.accountNumber} (${acc.balance.toLocaleString()})
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Box>
+                </motion.div>
+            )}
 
             {/* Category Filter Chips */}
             <motion.div
@@ -244,65 +374,70 @@ export default function AccountStatementView() {
                         initial={{ opacity: 0, x: -30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
+                        key={selectedAccountId} // Re-animate on account change
                     >
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 4,
-                                borderRadius: 4,
-                                height: '100%',
-                                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                                color: 'white',
-                                position: 'relative',
-                                overflow: 'hidden',
-                                boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.3)}`,
-                            }}
-                        >
-                            {/* Decorative shapes */}
-                            <Box sx={{
-                                position: 'absolute',
-                                top: -50,
-                                right: -50,
-                                width: 150,
-                                height: 150,
-                                borderRadius: '50%',
-                                bgcolor: 'rgba(255,255,255,0.1)',
-                            }} />
-                            <Box sx={{
-                                position: 'absolute',
-                                bottom: -30,
-                                left: -30,
-                                width: 100,
-                                height: 100,
-                                borderRadius: '50%',
-                                bgcolor: 'rgba(255,255,255,0.05)',
-                            }} />
+                        {selectedAccount && (() => {
+                            const colors = getAccountColors(selectedAccount.type);
+                            return (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 4,
+                                    borderRadius: 4,
+                                    height: '100%',
+                                    background: colors.gradient,
+                                    color: 'white',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    boxShadow: `0 20px 40px ${colors.shadowColor}`,
+                                }}
+                            >
+                                {/* Decorative shapes */}
+                                <Box sx={{
+                                    position: 'absolute',
+                                    top: -50,
+                                    right: -50,
+                                    width: 150,
+                                    height: 150,
+                                    borderRadius: '50%',
+                                    bgcolor: 'rgba(255,255,255,0.1)',
+                                }} />
+                                <Box sx={{
+                                    position: 'absolute',
+                                    bottom: -30,
+                                    left: -30,
+                                    width: 100,
+                                    height: 100,
+                                    borderRadius: '50%',
+                                    bgcolor: 'rgba(255,255,255,0.05)',
+                                }} />
 
-                            <Typography variant="overline" sx={{ opacity: 0.8, letterSpacing: 2 }}>
-                                Available Balance
-                            </Typography>
-                            <Typography variant="h2" sx={{ fontWeight: 800, mb: 4, letterSpacing: '-0.02em' }}>
-                                $<CountUp end={account.balance} />
-                            </Typography>
+                                <Typography variant="overline" sx={{ opacity: 0.8, letterSpacing: 2 }}>
+                                    Available Balance
+                                </Typography>
+                                <Typography variant="h2" sx={{ fontWeight: 800, mb: 4, letterSpacing: '-0.02em' }}>
+                                    $<CountUp end={selectedAccount.balance} />
+                                </Typography>
 
-                            <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.2)', pt: 3, mt: 'auto' }}>
-                                <Typography variant="caption" sx={{ opacity: 0.7, letterSpacing: 1 }}>
-                                    ACCOUNT NUMBER
-                                </Typography>
-                                <Typography variant="h6" sx={{ fontFamily: '"SF Mono", monospace', letterSpacing: 3, mb: 2 }}>
-                                    {account.accountNumber}
-                                </Typography>
-                                <Chip
-                                    label={account.type}
-                                    size="small"
-                                    sx={{
-                                        bgcolor: 'rgba(255,255,255,0.15)',
-                                        color: 'white',
-                                        fontWeight: 600,
-                                    }}
-                                />
-                            </Box>
-                        </Paper>
+                                <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.2)', pt: 3, mt: 'auto' }}>
+                                    <Typography variant="caption" sx={{ opacity: 0.7, letterSpacing: 1 }}>
+                                        ACCOUNT NUMBER
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ fontFamily: '"SF Mono", monospace', letterSpacing: 3, mb: 2 }}>
+                                        {selectedAccount.accountNumber}
+                                    </Typography>
+                                    <Chip
+                                        label={selectedAccount.type}
+                                        size="small"
+                                        sx={{
+                                            bgcolor: 'rgba(255,255,255,0.15)',
+                                            color: 'white',
+                                            fontWeight: 600,
+                                        }}
+                                    />
+                                </Box>
+                            </Paper>
+                        );})()}
                     </motion.div>
                 </Grid>
 
@@ -343,105 +478,119 @@ export default function AccountStatementView() {
                             </Box>
 
                             <TableContainer sx={{ maxHeight: 600 }}>
-                                <Table stickyHeader>
-                                    <TableHead>
-                                        <TableRow sx={{
-                                            '& th': {
-                                                bgcolor: isDark ? 'rgba(15, 23, 42, 1)' : '#F8FAFC',
-                                                zIndex: 1
-                                            }
-                                        }}>
-                                            <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Date</TableCell>
-                                            <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Description</TableCell>
-                                            <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Category</TableCell>
-                                            <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Type</TableCell>
-                                            <TableCell align="right" sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Amount</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {filteredTransactions.map((row, index) => (
-                                            <TableRow
-                                                component={motion.tr}
-                                                key={row.id}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: 0.2 + index * 0.05 }}
-                                                onClick={() => setSelectedTransaction(row)}
-                                                sx={{
-                                                    cursor: 'pointer',
-                                                    '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }
-                                                }}
-                                            >
-                                                <TableCell sx={{
-                                                    fontFamily: '"SF Mono", monospace',
-                                                    fontSize: '0.875rem',
-                                                    color: isDark ? '#94A3B8' : 'text.secondary',
-                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                                }}>
-                                                    {row.date}
-                                                </TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 500,
-                                                    color: isDark ? '#F8FAFC' : 'text.primary',
-                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                                }}>
-                                                    {row.desc}
-                                                </TableCell>
-                                                <TableCell sx={{
-                                                    color: isDark ? '#94A3B8' : 'text.secondary',
-                                                    borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                                }}>
-                                                    <Chip
-                                                        label={row.category}
-                                                        size="small"
-                                                        sx={{
-                                                            height: 24,
-                                                            bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                                                            fontSize: '0.75rem',
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                                <TableCell sx={{ borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>
-                                                    <Chip
-                                                        icon={row.type === 'CREDIT'
-                                                            ? <TrendingUpIcon sx={{ fontSize: 16 }} />
-                                                            : <TrendingDownIcon sx={{ fontSize: 16 }} />
-                                                        }
-                                                        label={row.type}
-                                                        size="small"
-                                                        sx={{
-                                                            bgcolor: row.type === 'CREDIT'
-                                                                ? alpha(theme.palette.success.main, isDark ? 0.2 : 0.1)
-                                                                : alpha(isDark ? '#94A3B8' : theme.palette.text.secondary, 0.1),
-                                                            color: row.type === 'CREDIT'
-                                                                ? isDark ? '#4ADE80' : theme.palette.success.dark
-                                                                : isDark ? '#94A3B8' : theme.palette.text.secondary,
-                                                            fontWeight: 600,
-                                                            fontSize: '0.7rem',
-                                                            '& .MuiChip-icon': {
-                                                                color: 'inherit'
-                                                            }
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                                <TableCell
-                                                    align="right"
-                                                    sx={{
-                                                        color: row.type === 'CREDIT'
-                                                            ? isDark ? '#4ADE80' : theme.palette.success.main
-                                                            : isDark ? '#F8FAFC' : theme.palette.text.primary,
-                                                        fontWeight: 700,
-                                                        fontFamily: '"SF Mono", monospace',
-                                                        fontSize: '0.95rem',
-                                                        borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                                    }}
-                                                >
-                                                    {row.type === 'DEBIT' ? '-' : '+'}${row.amount.toFixed(2)}
-                                                </TableCell>
+                                {loadingTransactions ? (
+                                    <Box sx={{ p: 4, textAlign: 'center' }}>
+                                        <Typography color="text.secondary">Loading transactions...</Typography>
+                                    </Box>
+                                ) : (
+                                    <Table stickyHeader>
+                                        <TableHead>
+                                            <TableRow sx={{
+                                                '& th': {
+                                                    bgcolor: isDark ? 'rgba(15, 23, 42, 1)' : '#F8FAFC',
+                                                    zIndex: 1
+                                                }
+                                            }}>
+                                                <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Date</TableCell>
+                                                <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Description</TableCell>
+                                                <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Category</TableCell>
+                                                <TableCell sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Type</TableCell>
+                                                <TableCell align="right" sx={{ fontWeight: 600, color: isDark ? '#94A3B8' : 'text.secondary' }}>Amount</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHead>
+                                        <TableBody>
+                                            {filteredTransactions.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                                                        <Typography color="text.secondary">No transactions found</Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                filteredTransactions.map((row, index) => (
+                                                    <TableRow
+                                                        component={motion.tr}
+                                                        key={row.id}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: 0.2 + index * 0.05 }}
+                                                        onClick={() => setSelectedTransaction(row)}
+                                                        sx={{
+                                                            cursor: 'pointer',
+                                                            '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }
+                                                        }}
+                                                    >
+                                                        <TableCell sx={{
+                                                            fontFamily: '"SF Mono", monospace',
+                                                            fontSize: '0.875rem',
+                                                            color: isDark ? '#94A3B8' : 'text.secondary',
+                                                            borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                                        }}>
+                                                            {row.date}
+                                                        </TableCell>
+                                                        <TableCell sx={{
+                                                            fontWeight: 500,
+                                                            color: isDark ? '#F8FAFC' : 'text.primary',
+                                                            borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                                        }}>
+                                                            {row.desc}
+                                                        </TableCell>
+                                                        <TableCell sx={{
+                                                            color: isDark ? '#94A3B8' : 'text.secondary',
+                                                            borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                                        }}>
+                                                            <Chip
+                                                                label={row.category}
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 24,
+                                                                    bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                                                                    fontSize: '0.75rem',
+                                                                }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell sx={{ borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>
+                                                            <Chip
+                                                                icon={row.type === 'CREDIT'
+                                                                    ? <TrendingUpIcon sx={{ fontSize: 16 }} />
+                                                                    : <TrendingDownIcon sx={{ fontSize: 16 }} />
+                                                                }
+                                                                label={row.type}
+                                                                size="small"
+                                                                sx={{
+                                                                    bgcolor: row.type === 'CREDIT'
+                                                                        ? alpha(theme.palette.success.main, isDark ? 0.2 : 0.1)
+                                                                        : alpha(isDark ? '#94A3B8' : theme.palette.text.secondary, 0.1),
+                                                                    color: row.type === 'CREDIT'
+                                                                        ? isDark ? '#4ADE80' : theme.palette.success.dark
+                                                                        : isDark ? '#94A3B8' : theme.palette.text.secondary,
+                                                                    fontWeight: 600,
+                                                                    fontSize: '0.7rem',
+                                                                    '& .MuiChip-icon': {
+                                                                        color: 'inherit'
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell
+                                                            align="right"
+                                                            sx={{
+                                                                color: row.type === 'CREDIT'
+                                                                    ? isDark ? '#4ADE80' : theme.palette.success.main
+                                                                    : isDark ? '#F8FAFC' : theme.palette.text.primary,
+                                                                fontWeight: 700,
+                                                                fontFamily: '"SF Mono", monospace',
+                                                                fontSize: '0.95rem',
+                                                                borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                                            }}
+                                                        >
+                                                            {row.type === 'DEBIT' ? '-' : '+'}${row.amount.toFixed(2)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                )}
                             </TableContainer>
                         </Paper>
                     </motion.div>
