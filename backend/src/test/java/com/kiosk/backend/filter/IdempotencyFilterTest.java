@@ -3,7 +3,6 @@ package com.kiosk.backend.filter;
 import com.kiosk.backend.entity.IdempotencyRecord;
 import com.kiosk.backend.repository.IdempotencyRepository;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +43,7 @@ class IdempotencyFilterTest {
 
         verify(filterChain).doFilter(request, response);
         verify(idempotencyRepository, never()).findByKey(any());
-        verify(idempotencyRepository, never()).save(any());
+        verify(idempotencyRepository, never()).save(any(IdempotencyRecord.class));
     }
 
     @Test
@@ -58,7 +55,7 @@ class IdempotencyFilterTest {
         idempotencyFilter.doFilterInternal(request, response, filterChain);
 
         verify(filterChain).doFilter(request, response);
-        verify(idempotencyRepository, never()).findByKey(any());
+        verify(idempotencyRepository, never()).findByKey(any(String.class));
     }
 
     @Test

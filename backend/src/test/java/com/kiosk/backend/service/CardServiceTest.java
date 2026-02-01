@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +36,7 @@ class CardServiceTest {
         existingCard.setUserId("USER123");
 
         when(cardRepository.findById(cardId)).thenReturn(Optional.of(existingCard));
-        when(cardRepository.save(any(Card.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cardRepository.save(any(Card.class))).thenAnswer(invocation -> invocation.getArgument(0, Card.class));
 
         String referenceId = cardService.replaceCard(cardId, "Lost Card", "123 Main St");
 

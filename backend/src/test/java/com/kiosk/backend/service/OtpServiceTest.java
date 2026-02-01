@@ -40,10 +40,11 @@ class OtpServiceTest {
         MockitoAnnotations.openMocks(this);
         when(configService.getOtpExpirySeconds()).thenReturn(300);
         when(configService.getOtpMaxAttempts()).thenReturn(3);
-        when(otpAttemptRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(otpAttemptRepository.findById(any(String.class))).thenReturn(Optional.empty());
     }
 
     @Test
+    @SuppressWarnings("null")
     void generateOtp_ShouldCreateRecordWithSecret() {
         String identifier = "user123";
         String otp = otpService.generateOtp(identifier);
@@ -60,6 +61,7 @@ class OtpServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void validateOtp_ShouldValidateSuccessfully() throws Exception {
         String identifier = "user123";
 
@@ -122,6 +124,7 @@ class OtpServiceTest {
 
         assertFalse(result.isValid());
         assertTrue(result.getMessage().contains("locked"));
-        verify(otpRecordRepository, never()).findFirstByIdentifierAndValidatedFalseOrderByCreatedAtDesc(anyString());
+        verify(otpRecordRepository, never())
+                .findFirstByIdentifierAndValidatedFalseOrderByCreatedAtDesc(any(String.class));
     }
 }

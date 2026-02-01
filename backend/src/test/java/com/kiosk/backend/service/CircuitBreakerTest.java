@@ -1,6 +1,5 @@
 package com.kiosk.backend.service;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.Test;
@@ -8,9 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -21,9 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "resilience4j.circuitbreaker.instances.billerService.waitDurationInOpenState=1s"
 })
 public class CircuitBreakerTest {
-
-    @Autowired
-    private BillerIntegrationService billerIntegrationService;
 
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
