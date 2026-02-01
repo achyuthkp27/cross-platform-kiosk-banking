@@ -17,17 +17,7 @@ export const cardApi: ICardService = {
     },
 
     async replaceCard(cardId: number, reason: string, address: string): Promise<ApiResponse<{ referenceId: string; deliveryEstimate: string }>> {
-        // Maps to request new card but simplified for now
-        // Ideally we should call a distinct endpoint for replacement
-        const response = await apiClient.post<any>(`/cards/request`, { accountId: 1, type: 'DEBIT' });
-        return {
-            success: response.success,
-            message: response.message,
-            data: {
-                referenceId: `REF-${cardId}`,
-                deliveryEstimate: '5-7 Business Days'
-            }
-        };
+        return apiClient.post(`/cards/${cardId}/replace`, { reason, address });
     },
 
     async requestNewCard(accountId: number, type: string): Promise<ApiResponse<Card>> {

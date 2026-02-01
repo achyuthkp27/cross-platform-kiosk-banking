@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'expo-router';
-import { configService } from '../services';
+import { configService, authService } from '../services';
 
 interface SessionContextType {
     timeLeft: number;
     isActive: boolean;
     showWarning: boolean;
-    resetSession: () => void;
+    resetSession: () => Promise<void>;
     endSession: () => void;
     sessionDuration: number;
     setSessionDuration: (duration: number) => void;
@@ -66,11 +66,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         router.replace('/');
     }, [router, sessionDuration]);
 
-    const resetSession = useCallback(() => {
+    const resetSession = useCallback(async () => {
         if (!isActive) return;
+        
+        // If we are showing warning (session near expiry), try to refresh token
+        if (showWarning) {
+            console.log('[SessionContext] Session extending - attempting to refresh token');
+            const refreshed = await authService.refreshToken();
+            if (!refreshed) {
+                console.warn('[SessionContext] Failed to refresh token - ending session');
+                endSession();
+                return;
+            }
+        }
+
         setTimeLeft(sessionDuration);
         setShowWarning(false);
-    }, [isActive, sessionDuration]);
+    }, [isActive, sessionDuration, showWarning, endSession]);
 
     // Fetch session timeout from backend on mount
     useEffect(() => {

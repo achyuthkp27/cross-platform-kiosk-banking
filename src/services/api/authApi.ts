@@ -15,7 +15,7 @@ export const authApi: IAuthService = {
         
         if (response.success && response.token) {
             console.log('[AuthAPI] Login successful, setting token');
-            apiClient.setToken(response.token);
+            apiClient.setToken(response.token, response.refreshToken);
         }
         
         return response;
@@ -39,5 +39,22 @@ export const authApi: IAuthService = {
 
     async getProfile(userId: string): Promise<ApiResponse<CustomerProfile>> {
         return apiClient.get(`/auth/profile`);
+    },
+
+    async refreshToken(): Promise<boolean> {
+        const refreshToken = apiClient.getRefreshToken();
+        if (!refreshToken) return false;
+
+        try {
+            const response = await apiClient.post<any>('/auth/refresh', { refreshToken });
+            if (response.success && response.token) {
+                console.log('[AuthAPI] Token refreshed successfully');
+                apiClient.setToken(response.token, refreshToken); // Keep same refresh token? Or rotate?
+                return true;
+            }
+        } catch (error) {
+            console.error('[AuthAPI] Failed to refresh token', error);
+        }
+        return false;
     }
 };

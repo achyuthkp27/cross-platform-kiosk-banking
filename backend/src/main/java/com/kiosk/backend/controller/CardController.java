@@ -71,6 +71,29 @@ public class CardController {
         }
     }
 
+    @PostMapping("/{cardId}/replace")
+    public ResponseEntity<Map<String, Object>> replaceCard(
+            @PathVariable Long cardId,
+            @RequestBody Map<String, String> body) {
+        final Long nonNullCardId = java.util.Objects.requireNonNull(cardId);
+        String reason = body.get("reason");
+        String address = body.get("address");
+
+        try {
+            String refId = service.replaceCard(nonNullCardId, reason, address);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Card replacement requested successfully",
+                    "data", Map.of(
+                            "referenceId", refId,
+                            "deliveryEstimate", "5-7 Business Days")));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/request")
     public ResponseEntity<Map<String, Object>> requestCard(
             org.springframework.security.core.Authentication authentication,

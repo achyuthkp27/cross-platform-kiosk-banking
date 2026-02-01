@@ -3,10 +3,18 @@ import { Modal, Box, Typography, Button, CircularProgress, useTheme } from '@mui
 import { motion } from 'framer-motion';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useSession } from '../context/SessionContext';
+import { useState } from 'react';
 
 export const SessionTimeoutModal = () => {
     const theme = useTheme();
     const { showWarning, timeLeft, resetSession, endSession } = useSession();
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleContinue = async () => {
+        setIsRefreshing(true);
+        await resetSession();
+        setIsRefreshing(false);
+    };
 
     if (!showWarning) return null;
 
@@ -85,10 +93,11 @@ export const SessionTimeoutModal = () => {
                     <Button
                         fullWidth
                         variant="contained"
-                        onClick={resetSession}
+                        onClick={handleContinue}
+                        disabled={isRefreshing}
                         sx={{ borderRadius: 3, py: 1.5, fontWeight: 700 }}
                     >
-                        Continue Session
+                        {isRefreshing ? 'Extending...' : 'Continue Session'}
                     </Button>
                 </Box>
             </Box>

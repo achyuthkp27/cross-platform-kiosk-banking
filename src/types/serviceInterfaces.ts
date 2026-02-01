@@ -36,6 +36,7 @@ export interface IAuthService {
     updatePreferences(userId: string, language?: string, theme?: string): Promise<ApiResponse<void>>;
     logout(userId: string): Promise<void>;
     getProfile(userId: string): Promise<ApiResponse<CustomerProfile>>;
+    refreshToken(): Promise<boolean>;
 }
 
 // =====================================================

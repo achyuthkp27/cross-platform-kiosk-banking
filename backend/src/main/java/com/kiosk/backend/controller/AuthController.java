@@ -58,6 +58,7 @@ public class AuthController {
         Customer customer = customerOpt.get();
         // Generate Token
         String token = jwtService.generateToken(userId);
+        String refreshToken = jwtService.generateRefreshToken(userId);
 
         auditService.logCustomerAction("LOGIN_SUCCESS", userId, null);
         metricsService.incrementAuthSuccess();
@@ -65,6 +66,7 @@ public class AuthController {
         response.put("success", true);
         response.put("message", "Login successful");
         response.put("token", token);
+        response.put("refreshToken", refreshToken);
         response.put("data", Map.of(
                 "userId", customer.getUserId(),
                 "name", customer.getName(),
@@ -72,6 +74,38 @@ public class AuthController {
                 "themePref", customer.getThemePref()));
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Refresh Token
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        Map<String, Object> response = new HashMap<>();
+
+        if (refreshToken == null) {
+            response.put("success", false);
+            response.put("message", "Refresh Token is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            String userId = jwtService.extractUsername(refreshToken);
+            if (userId != null && jwtService.isTokenValid(refreshToken, userId)) {
+                String newToken = jwtService.generateToken(userId);
+                response.put("success", true);
+                response.put("token", newToken);
+                response.put("message", "Token refreshed successfully");
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            // Token invalid or expired
+        }
+
+        response.put("success", false);
+        response.put("message", "Invalid or expired refresh token");
+        return ResponseEntity.status(401).body(response);
     }
 
     /**

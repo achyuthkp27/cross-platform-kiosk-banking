@@ -18,7 +18,8 @@ public class JwtService {
 
     // In production, this should be in an environment variable or secure vault
     private static final String SECRET_KEY = "357638792F423F4428472B4B6250655368566D597133743677397A2443264629";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 15; // 15 minutes
+    private static final long EXPIRATION_TIME = 1000 * 60 * 6; // 6 minutes (Access Token)
+    private static final long REFRESH_EXPIRATION_TIME = 1000 * 60 * 10; // 10 minutes (Refresh Token)
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -31,6 +32,15 @@ public class JwtService {
 
     public String generateToken(String userId) {
         return generateToken(new HashMap<>(), userId);
+    }
+
+    public String generateRefreshToken(String userId) {
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     public String generateToken(Map<String, Object> extraClaims, String userId) {

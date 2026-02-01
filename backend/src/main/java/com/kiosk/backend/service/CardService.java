@@ -47,6 +47,24 @@ public class CardService {
     }
 
     @Transactional
+    public String replaceCard(@NonNull Long cardId, String reason, String address) {
+        Optional<Card> cardOpt = cardRepository.findById(cardId);
+        if (cardOpt.isPresent()) {
+            Card card = cardOpt.get();
+            if ("BLOCKED".equals(card.getStatus())) {
+                // If already blocked, just proceed with replacement request
+            } else {
+                card.setStatus("BLOCKED"); // Block the old card
+                cardRepository.save(card);
+            }
+            // In a real system, we would create a CardReplacementRequest entity
+            // For MVP, return a random reference ID
+            return "REP-" + new Random().nextInt(100000);
+        }
+        throw new RuntimeException("Card not found");
+    }
+
+    @Transactional
     public Card requestNewCard(String userId, Long accountId, String type) {
         Card card = new Card();
         card.setUserId(userId);

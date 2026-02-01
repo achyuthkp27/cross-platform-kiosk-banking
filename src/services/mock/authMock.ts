@@ -118,5 +118,11 @@ export const authMock: IAuthService = {
                 themePref: customer.themePref
             }
         };
+    },
+
+    async refreshToken(): Promise<boolean> {
+        await delay(500);
+        console.log('[MOCK] Token refreshed successfully');
+        return true;
     }
 };

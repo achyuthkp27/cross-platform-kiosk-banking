@@ -6,33 +6,46 @@ import { cryptoService } from './cryptoService';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080/v1'; // Default to local backend
 const IS_REAL_MODE = process.env.EXPO_PUBLIC_DATA_MODE === 'REAL';
 const TOKEN_KEY = 'kiosk_auth_token';
+const REFRESH_TOKEN_KEY = 'kiosk_refresh_token';
 
 class ApiClient {
     private baseUrl: string;
     private mockMode: boolean = false; // Mock mode is determined by Environment
     private token: string | null = null;
+    private refreshToken: string | null = null;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
         // Try to hydrate token from storage if available (safe for browser env)
         if (typeof window !== 'undefined') {
             this.token = localStorage.getItem(TOKEN_KEY);
+            this.refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
         }
     }
 
 
 
-    setToken(token: string) {
+    setToken(token: string, refreshToken?: string) {
         this.token = token;
         if (typeof window !== 'undefined') {
             localStorage.setItem(TOKEN_KEY, token);
+            if (refreshToken) {
+                this.refreshToken = refreshToken;
+                localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+            }
         }
+    }
+
+    getRefreshToken(): string | null {
+        return this.refreshToken;
     }
 
     clearToken() {
         this.token = null;
+        this.refreshToken = null;
         if (typeof window !== 'undefined') {
             localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(REFRESH_TOKEN_KEY);
         }
     }
 
