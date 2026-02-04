@@ -35,7 +35,7 @@ jobs:
         run: npm run lint
 
       - name: Export static web build
-        run: npx expo export --platform web
+        run: npm run build:ghpages
         env:
           NODE_ENV: production
 

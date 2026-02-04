@@ -47,6 +47,7 @@ const ThemeToggle = ({ sx, inline = false }: ThemeToggleProps) => {
         >
             {/* Moon Icon Container */}
             <motion.div
+                initial={false}
                 animate={{
                     scale: isDark ? 1 : 0.5,
                     rotate: isDark ? 0 : 90,
@@ -65,6 +66,7 @@ const ThemeToggle = ({ sx, inline = false }: ThemeToggleProps) => {
 
             {/* Sun Icon Container */}
             <motion.div
+                initial={false}
                 animate={{
                     scale: isDark ? 0.5 : 1,
                     rotate: isDark ? -90 : 0,
