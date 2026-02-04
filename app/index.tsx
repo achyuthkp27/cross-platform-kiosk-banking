@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, alpha } from '@mui/material';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import LanguageSelector from '../src/components/language/LanguageSelector';
 import { useLanguage } from '../src/context/LanguageContext';
 import { motion } from 'framer-motion';
@@ -279,7 +279,7 @@ export default function LandingScreen() {
                         onHoverEnd={() => setIsHovered(false)}
                     >
                         <Button
-                            // onClick={() => router.push('/login')}
+                            onClick={() => router.push('/login')}
                             sx={{
                                 position: 'relative',
                                 background: isHovered
@@ -313,19 +313,18 @@ export default function LandingScreen() {
                                 transition: 'opacity 0.3s',
                             }} />
 
+                            {/* Button Text */}
                             <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Link href="/login" style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: '100%' }}>
-                                    {t('landing.start')}
-                                    <MaterialIcons
-                                        name="arrow-forward"
-                                        size={24}
-                                        color={isHovered ? '#fff' : buttonTextColor}
-                                        style={{
-                                            opacity: isHovered ? 1 : 0.6,
-                                            transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
-                                        }}
-                                    />
-                                </Link>
+                                {t('landing.start')}
+                                <MaterialIcons
+                                    name="arrow-forward"
+                                    size={24}
+                                    color={isHovered ? '#fff' : buttonTextColor}
+                                    style={{
+                                        opacity: isHovered ? 1 : 0.6,
+                                        transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
+                                    }}
+                                />
                             </Box>
                         </Button>
                     </motion.div>
