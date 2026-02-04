@@ -181,7 +181,7 @@ export default function LandingScreen() {
             >
                 {/* 1. LOGO REVEAL */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    initial={{ opacity: 1, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                 >
@@ -214,7 +214,7 @@ export default function LandingScreen() {
 
                 {/* 2. MAIN HEADLINE */}
                 <motion.div
-                    initial={{ opacity: 0, y: 40 }}
+                    initial={{ opacity: 1, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 >
@@ -245,7 +245,7 @@ export default function LandingScreen() {
 
                 {/* 3. SUBTEXT */}
                 <motion.div
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 1 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.5, delay: 0.6 }}
                 >
@@ -268,7 +268,7 @@ export default function LandingScreen() {
 
                 {/* 4. INTERACTIVE START BUTTON */}
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.9, opacity: 1 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.8, type: 'spring' }}
                 >
@@ -346,7 +346,7 @@ export default function LandingScreen() {
                 {['Secure', 'Encrypted', '24/7 Support'].map((item, index) => (
                     <motion.div
                         key={item}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 1, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.2 + (index * 0.1), duration: 1 }}
                     >
