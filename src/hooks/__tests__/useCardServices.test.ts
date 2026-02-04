@@ -28,7 +28,7 @@ describe('useCardServices', () => {
         // Trigger Block
         let promise: Promise<void>;
         act(() => {
-            promise = result.current.toggleCardStatus(cardToToggle.id, 'Lost');
+            promise = result.current.toggleCardStatus(cardToToggle.id);
         });
 
         expect(result.current.loading).toBe(true);
@@ -62,7 +62,7 @@ describe('useCardServices', () => {
 
         let promise: Promise<void>;
         act(() => {
-            promise = result.current.updatePin(cardId, '1234');
+            promise = result.current.updatePin(cardId);
         });
 
         expect(result.current.loading).toBe(true);

@@ -38,7 +38,7 @@ export default function CardActionPage() {
 
     const handlePinChange = async (newPin: string) => {
         try {
-            await updatePin(card.id, newPin);
+            await updatePin(card.id);
             setSuccessMessage('PIN Updated Successfully');
             showSuccess('PIN updated');
             handleCompletion();
@@ -49,7 +49,7 @@ export default function CardActionPage() {
 
     const handleBlockAction = async (reason?: string) => {
         try {
-            await toggleCardStatus(card.id, reason);
+            await toggleCardStatus(card.id);
             const isBlocking = card.status !== 'BLOCKED';
             setSuccessMessage(isBlocking ? 'Card Blocked Successfully' : 'Card Unblocked Successfully');
             showSuccess(isBlocking ? 'Card blocked' : 'Card unblocked');

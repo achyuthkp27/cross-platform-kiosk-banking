@@ -323,7 +323,6 @@ export default function LandingScreen() {
                                     style={{
                                         opacity: isHovered ? 1 : 0.6,
                                         transform: isHovered ? 'translateX(4px)' : 'translateX(0)',
-                                        transition: 'all 0.3s ease'
                                     }}
                                 />
                             </Box>

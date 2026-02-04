@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, FormControl, FormLabel } from '@mui/material';
+import { Box, Typography, Button, TextField } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import OTPFieldGroup from '../OTPFieldGroup';
-import SuccessState from '../SuccessState';
+
 
 interface PinChangeFormProps {
     onCancel: () => void;
@@ -28,7 +28,7 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
         setOtp(newOtp);
     };
 
-    const handleOtpComplete = (code: string) => {
+    const handleOtpComplete = () => {
         // Simulate OTP verification
         setTimeout(() => setStep(STEPS.NEW_PIN), 1000);
     };
@@ -60,7 +60,7 @@ const PinChangeForm: React.FC<PinChangeFormProps> = ({ onCancel, onComplete, loa
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                     >
-                        <Typography variant="h6" gutterBottom>Verify it's you</Typography>
+                        <Typography variant="h6" gutterBottom>Verify it&apos;s you</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
                             Enter the 6-digit code sent to your mobile number ending in **88
                         </Typography>

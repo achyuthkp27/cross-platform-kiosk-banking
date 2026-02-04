@@ -48,12 +48,12 @@ export const useCardServices = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const toggleCardStatus = useCallback(async (cardId: string, reason?: string) => {
+    const toggleCardStatus = useCallback(async (cardId: string) => {
         setLoading(true);
         setError(null);
 
         // Simulate API call
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             setTimeout(() => {
                 setCards(prevCards => prevCards.map(card => {
                     if (card.id === cardId) {
@@ -72,7 +72,7 @@ export const useCardServices = () => {
         });
     }, [selectedCard]);
 
-    const updatePin = useCallback(async (cardId: string, newPin: string) => {
+    const updatePin = useCallback(async (cardId: string) => {
         setLoading(true);
         setError(null);
 

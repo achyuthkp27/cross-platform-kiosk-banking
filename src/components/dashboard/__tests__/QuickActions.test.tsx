@@ -6,13 +6,17 @@ import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 // Mock icons
-jest.mock('@mui/icons-material/Home', () => () => <div data-testid="mock-icon" />);
-jest.mock('@mui/icons-material/Settings', () => () => <div data-testid="mock-icon" />);
+const MockIcon = () => <div data-testid="mock-icon" />;
+MockIcon.displayName = 'MockIcon';
+
+jest.mock('@mui/icons-material/Home', () => MockIcon);
+jest.mock('@mui/icons-material/Settings', () => MockIcon);
 
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, whileHover, whileTap, initial, animate, exit, variants, transition, ...props }: any) => <div {...props}>{children}</div>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        div: ({ children, whileHover: _whileHover, whileTap: _whileTap, initial: _initial, animate: _animate, exit: _exit, variants: _variants, transition: _transition, ...props }: any) => <div {...props}>{children}</div>,
     },
 }));
 

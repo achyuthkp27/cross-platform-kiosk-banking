@@ -5,7 +5,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import PinIcon from '@mui/icons-material/Pin'; // Or equivalent
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import BlockIcon from '@mui/icons-material/Block';
+
 import { Card } from '../../types/card';
 
 export type CardAction = 'BLOCK' | 'UNBLOCK' | 'PIN' | 'REPLACE';
